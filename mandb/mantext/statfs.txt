@@ -1,0 +1,189 @@
+STATFS(2)		    BSD System Calls Manual		     STATFS(2)
+
+NAME
+     statfs, statfs64, fstatfs, fstatfs64 -- get file system statistics
+
+SYNOPSIS
+     #include <sys/param.h>
+     #include <sys/mount.h>
+
+     int
+     statfs(const char *path, struct statfs *buf);
+
+     int
+     fstatfs(int fd, struct statfs *buf);
+
+TRANSITIIONAL SYNOPSIS (NOW DEPRECATED)
+     int
+     statfs64(const char *path, struct statfs64 *buf);
+
+     int
+     fstatfs64(int fd, struct statfs64 *buf);
+
+DESCRIPTION
+     The statfs() routine returns information about a mounted file system.
+     The path argument is the path name of any file or directory within the
+     mounted file system.  The buf argument is a pointer to a statfs struc-
+     ture.  When the macro _DARWIN_FEATURE_64_BIT_INODE is not defined (the
+     ino_t type is 32-bits), that structure is defined as:
+
+     typedef struct { int32_t val[2]; } fsid_t;
+
+     #define MFSNAMELEN      15 /* length of fs type name, not inc. nul */
+     #define MNAMELEN	     90 /* length of buffer for returned name */
+
+     struct statfs { /* when _DARWIN_FEATURE_64_BIT_INODE is NOT defined */
+	 short	 f_otype;    /* type of file system (reserved: zero) */
+	 short	 f_oflags;   /* copy of mount flags (reserved: zero) */
+	 long	 f_bsize;    /* fundamental file system block size */
+	 long	 f_iosize;   /* optimal transfer block size */
+	 long	 f_blocks;   /* total data blocks in file system */
+	 long	 f_bfree;    /* free blocks in fs */
+	 long	 f_bavail;   /* free blocks avail to non-superuser */
+	 long	 f_files;    /* total file nodes in file system */
+	 long	 f_ffree;    /* free file nodes in fs */
+	 fsid_t  f_fsid;     /* file system id */
+	 uid_t	 f_owner;    /* user that mounted the file system */
+	 short	 f_reserved1;	     /* reserved for future use */
+	 short	 f_type;     /* type of file system (reserved) */
+	 long	 f_flags;    /* copy of mount flags (reserved) */
+	 long	 f_reserved2[2];     /* reserved for future use */
+	 char	 f_fstypename[MFSNAMELEN]; /* fs type name */
+	 char	 f_mntonname[MNAMELEN];    /* directory on which mounted */
+	 char	 f_mntfromname[MNAMELEN];  /* mounted file system */
+	 char	 f_reserved3;	     /* reserved for future use */
+	 long	 f_reserved4[4];     /* reserved for future use */
+     };
+
+     However, when the macro _DARWIN_FEATURE_64_BIT_INODE is defined, the
+     ino_t type will be 64-bits (force 64-bit inode mode by defining the
+     _DARWIN_USE_64_BIT_INODE macro before including header files).  This will
+     cause symbol variants of the statfs family, with the $INODE64 suffixes,
+     to be automatically linked in.  In addition, the statfs structure will
+     now be defined as:
+
+     #define MFSTYPENAMELEN  16 /* length of fs type name including null */
+     #define MAXPATHLEN      1024
+     #define MNAMELEN	     MAXPATHLEN
+
+     struct statfs { /* when _DARWIN_FEATURE_64_BIT_INODE is defined */
+	 uint32_t    f_bsize;	     /* fundamental file system block size */
+	 int32_t     f_iosize;	     /* optimal transfer block size */
+	 uint64_t    f_blocks;	     /* total data blocks in file system */
+	 uint64_t    f_bfree;	     /* free blocks in fs */
+	 uint64_t    f_bavail;	     /* free blocks avail to non-superuser */
+	 uint64_t    f_files;	     /* total file nodes in file system */
+	 uint64_t    f_ffree;	     /* free file nodes in fs */
+	 fsid_t      f_fsid;	     /* file system id */
+	 uid_t	     f_owner;	     /* user that mounted the filesystem */
+	 uint32_t    f_type;	     /* type of filesystem */
+	 uint32_t    f_flags;	     /* copy of mount exported flags */
+	 uint32_t    f_fssubtype;    /* fs sub-type (flavor) */
+	 char	     f_fstypename[MFSTYPENAMELEN];   /* fs type name */
+	 char	     f_mntonname[MAXPATHLEN];	     /* directory on which mounted */
+	 char	     f_mntfromname[MAXPATHLEN];      /* mounted filesystem */
+	 uint32_t    f_reserved[8];  /* For future use */
+     };
+
+     Fields that are undefined for a particular file system are set to -1.
+     The fstatfs() routine returns the same information about an open file
+     referenced by descriptor fd.
+
+FLAGS
+     These are some of the flags that may be present in the f_flags field.
+
+     MNT_RDONLY 	    A read-only filesystem
+
+     MNT_SYNCHRONOUS	    File system is written to synchronously
+
+     MNT_NOEXEC 	    Can't exec from filesystem
+
+     MNT_NOSUID 	    Setuid bits are not honored on this filesystem
+
+     MNT_NODEV		    Don't interpret special files
+
+     MNT_UNION		    Union with underlying filesysten
+
+     MNT_ASYNC		    File system written to asynchronously
+
+     MNT_EXPORTED	    File system is exported
+
+     MNT_LOCAL		    File system is stored locally
+
+     MNT_QUOTA		    Quotas are enabled on this file system
+
+     MNT_ROOTFS 	    This file system is the root of the file system
+
+     MNT_DOVOLFS	    File system supports volfs
+
+     MNT_DONTBROWSE	    File system is not appropriate path to user data
+
+     MNT_UNKNOWNPERMISSIONS
+			    VFS will ignore ownership information on filesys-
+			    tem objects
+
+     MNT_AUTOMOUNTED	    File system was mounted by automounter
+
+     MNT_JOURNALED	    File system is journaled
+
+     MNT_DEFWRITE	    File system should defer writes
+
+     MNT_MULTILABEL	    MAC support for individual labels
+
+CAVEATS
+     In Mac OS X versions before 10.4, f_iosize is 4096. On these older sys-
+     tems, use MAXBSIZE instead.
+
+RETURN VALUES
+     Upon successful completion, a value of 0 is returned.  Otherwise, -1 is
+     returned and the global variable errno is set to indicate the error.
+
+ERRORS
+     The statfs() routine fails if one or more of the following are true:
+
+     [ENOTDIR]		A component of the path prefix of Path is not a direc-
+			tory.
+
+     [ENAMETOOLONG]	The length of a component of path exceeds {NAME_MAX}
+			characters, or the length of path exceeds {PATH_MAX}
+			characters.
+
+     [ENOENT]		The file or directory referred to by path does not
+			exist.
+
+     [EACCES]		Search permission is denied for a component of the
+			path prefix of path.
+
+     [ELOOP]		Too many symbolic links were encountered in translat-
+			ing path.
+
+     [EFAULT]		Buf or path points to an invalid address.
+
+     [EIO]		An I/O error occurred while reading from or writing to
+			the file system.
+
+     The fstatfs() routine fails if one or more of the following are true:
+
+     [EBADF]		fd is not a valid open file descriptor.
+
+     [EFAULT]		Buf points to an invalid address.
+
+     [EIO]		An I/O error occurred while reading from or writing to
+			the file system.
+
+TRANSITIONAL DESCRIPTION (NOW DEPRECATED)
+     The statfs64 and fstatfs64 routines are equivalent to their corresponding
+     non-64-suffixed routine, when 64-bit inodes are in effect.  They were
+     added before there was support for the symbol variants, and so are now
+     deprecated.  Instead of using these, set the _DARWIN_USE_64_BIT_INODE
+     macro before including header files to force 64-bit inode support.
+
+     The statfs64 structure used by these deprecated routines is the same as
+     the statfs structure when 64-bit inodes are in effect (see above).
+
+HISTORY
+     The statfs() function first appeared in 4.4BSD. The statfs64() and
+     fstatfs64() first appeared in Max OS X 10.5 (Leopard) and are now depre-
+     cated in favor of the corresponding symbol variants.
+
+BSD				August 14, 2008 			   BSD

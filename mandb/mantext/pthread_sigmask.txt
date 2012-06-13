@@ -1,0 +1,54 @@
+PTHREAD_SIGMASK(2)	    BSD System Calls Manual	    PTHREAD_SIGMASK(2)
+
+NAME
+     pthread_sigmask -- examine and/or change a thread's signal mask
+
+SYNOPSIS
+     #include <signal.h>
+
+     int
+     pthread_sigmask(int how, const sigset_t *restrict set,
+	 sigset_t *restrict oset);
+
+DESCRIPTION
+     The pthread_sigmask() function examines and/or changes the calling
+     thread's signal mask.
+
+     If set is not NULL, it specifies a set of signals to be modified, and how
+     specifies what to set the signal mask to:
+
+     SIG_BLOCK	  Union of the current mask and set.
+
+     SIG_UNBLOCK  Intersection of the current mask and the complement of set.
+
+     SIG_SETMASK  set.
+
+     If oset is not NULL, the previous signal mask is stored in the location
+     pointed to by oset.
+
+     SIGKILL and SIGSTOP cannot be blocked, and will be silently ignored if
+     included in the signal mask.
+
+RETURN VALUES
+     If successful, pthread_sigmask() returns 0.  Otherwise, an error is
+     returned.
+
+ERRORS
+     pthread_sigmask() will fail if:
+
+     [EINVAL]		how is not one of the defined values.
+
+LEGACY SYNOPSIS
+     #include <pthread.h>
+     #include <signal.h>
+
+     The include file <pthread.h> is necessary.
+
+SEE ALSO
+     sigaction(2), sigpending(2), sigprocmask(2), sigsuspend(2), sigsetops(3),
+     compat(5)
+
+STANDARDS
+     pthread_sigmask() conforms to ISO/IEC 9945-1:1996 (``POSIX.1'')
+
+BSD				April 27, 2000				   BSD

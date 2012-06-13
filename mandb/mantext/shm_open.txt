@@ -1,0 +1,101 @@
+SHM_OPEN(2)		    BSD System Calls Manual		   SHM_OPEN(2)
+
+NAME
+     shm_open -- open a shared memory object
+
+SYNOPSIS
+     #include <sys/mman.h>
+
+     int
+     shm_open(const char *name, int oflag, ...);
+
+     The parameter "mode_t mode" is optional.
+
+DESCRIPTION
+     The shared memory object referenced by name is opened for reading and/or
+     writing as specified by the argument oflag and the file descriptor
+     returned to the calling process.  The returned file descriptor will be
+     the lowest non-open file descriptor for the calling process, and is not
+     shared with any other processes, as it is a new file descriptor. The new
+     file descriptor will have the FD_CLOEXEC flag set.  Repeated calls to
+     shm_open with the same string value for name() will return a file
+     descriptor referring to the same shared memory object, provided that the
+     object has not been unlinked by a call to shm_unlink().  The oflag argu-
+     ment may indicate the file is to be created if it does not exist (by
+     specifying the O_CREAT flag), in which case the file is created with mode
+     mode as described in chmod(2) and modified by the process' umask value
+     (see umask(2)).
+
+     The value of oflag is formed by or'ing the following values:
+
+	   O_RDONLY	   open for reading only
+	   O_RDWR	   open for reading and writing
+	   O_CREAT	   create object if it does not exist
+	   O_EXCL	   error if create and object exists
+	   O_TRUNC	   truncate size to 0
+
+     Exactly one of O_RDONLY or O_RDWR must be specified.
+
+     If O_TRUNC is specified and the file exists, the file is truncated to
+     zero length.  If O_EXCL is set with O_CREAT and the file already exists,
+     shm_open() returns an error.  This may be used to implement a simple
+     exclusive access locking mechanism.
+
+     If successful, shm_open() returns a non-negative integer, termed a file
+     descriptor.  It returns -1 and sets errno on failure.  The file pointer
+     used to mark the current position within the memory object is set to the
+     beginning of the object.
+
+     When a new shared memory object is created it is given the owner and
+     group corresponding to the effective user and group of the calling
+     process. There is no visible entry in the file system for the created
+     object in this implementation.
+
+     When a shared memory object is created, it persists until it it unlinked
+     and all other references are gone. Objects do not persist across a system
+     reboot.
+
+     The system imposes a limit on the number of file descriptors open simul-
+     taneously by one process.	Getdtablesize(2) returns the current system
+     limit.
+
+ERRORS
+     The named object is opened unless:
+
+     [EACCES]		The required permissions (for reading and/or writing)
+			are denied for the given flags.
+
+     [EACCES]		O_CREAT is specified, the object does not exist, and
+			permission to create the object is denied.
+
+     [EEXIST]		O_CREAT and O_EXCL were specified and the object
+			exists.
+
+     [EINTR]		The shm_open() operation was interrupted by a signal.
+
+     [EINVAL]		The shm_open() operation is not supported.
+
+     [EMFILE]		The process has already reached its limit for open
+			file descriptors.
+
+     [ENAMETOOLONG]	name exceeded the name size limit.  This is currently
+			PSHMNAMLEN characters (defined in <sys/posix_shm.h>),
+			but this may change in the future.
+
+     [ENFILE]		The system file table is full.
+
+     [ENOENT]		O_CREAT is not set and the named object does not
+			exist.
+
+     [ENOSPC]		O_CREAT is specified, the file does not exist, and
+			there is insufficient space available to create the
+			object.
+
+SEE ALSO
+     chmod(2), close(2), getdtablesize(2), mmap(2), shm_unlink(2), umask(2)
+
+HISTORY
+     shm_open() is specified in the POSIX Realtime Extension
+     (1003.1b-1993/1003.1i-1995).
+
+Darwin				August 29, 2008 			Darwin

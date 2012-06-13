@@ -1,0 +1,97 @@
+BIND(2) 		    BSD System Calls Manual		       BIND(2)
+
+NAME
+     bind -- bind a name to a socket
+
+SYNOPSIS
+     #include <sys/socket.h>
+
+     int
+     bind(int socket, const struct sockaddr *address, socklen_t address_len);
+
+DESCRIPTION
+     Bind() assigns a name to an unnamed socket.  When a socket is created
+     with socket(2) it exists in a name space (address family) but has no name
+     assigned.	Bind() requests that address be assigned to the socket.
+
+NOTES
+     Binding a name in the UNIX domain creates a socket in the file system
+     that must be deleted by the caller when it is no longer needed (using
+     unlink(2)).
+
+     The rules used in name binding vary between communication domains.  Con-
+     sult the manual entries in section 4 for detailed information.
+
+RETURN VALUES
+     Upon successful completion, a value of 0 is returned.  Otherwise, a value
+     of -1 is returned and the global integer variable errno is set to indi-
+     cate the error.
+
+ERRORS
+     The bind() system call will fail if:
+
+     [EACCES]		The requested address is protected, and the current
+			user has inadequate permission to access it.
+
+     [EADDRINUSE]	The specified address is already in use.
+
+     [EADDRNOTAVAIL]	The specified address is not available from the local
+			machine.
+
+     [EAFNOSUPPORT]	address is not valid for the address family of socket.
+
+     [EBADF]		socket is not a valid file descriptor.
+
+     [EDESTADDRREQ]	socket is a null pointer.
+
+     [EFAULT]		The address parameter is not in a valid part of the
+			user address space.
+
+     [EINVAL]		socket is already bound to an address and the protocol
+			does not support binding to a new address.  Alterna-
+			tively, socket may have been shut down.
+
+     [ENOTSOCK] 	socket does not refer to a socket.
+
+     [EOPNOTSUPP]	socket is not of a type that can be bound to an
+			address.
+
+     The following errors are specific to binding names in the UNIX domain.
+
+     [EACCES]		A component of the path prefix does not allow search-
+			ing or the node's parent directory denies write per-
+			mission.
+
+     [EIO]		An I/O error occurred while making the directory entry
+			or allocating the inode.
+
+     [EISDIR]		An empty pathname was specified.
+
+     [ELOOP]		Too many symbolic links were encountered in translat-
+			ing the pathname.  This is taken to be indicative of a
+			looping symbolic link.
+
+     [ENAMETOOLONG]	A component of a pathname exceeded {NAME_MAX} charac-
+			ters, or an entire path name exceeded {PATH_MAX} char-
+			acters.
+
+     [ENOENT]		A component of the path name does not refer to an
+			existing file.
+
+     [ENOTDIR]		A component of the path prefix is not a directory.
+
+     [EROFS]		The name would reside on a read-only file system.
+
+LEGACY SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/socket.h>
+
+     The include file <sys/types.h> is necessary.
+
+SEE ALSO
+     connect(2), getsockname(2), listen(2), socket(2), compat(5)
+
+HISTORY
+     The bind() function call appeared in 4.2BSD.
+
+4.2 Berkeley Distribution	 June 4, 1993	     4.2 Berkeley Distribution

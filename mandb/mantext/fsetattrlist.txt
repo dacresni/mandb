@@ -1,0 +1,229 @@
+SETATTRLIST(2)		    BSD System Calls Manual		SETATTRLIST(2)
+
+NAME
+     setattrlist, fsetattrlist -- set file system attributes
+
+SYNOPSIS
+     #include <sys/attr.h>
+     #include <unistd.h>
+
+     int
+     setattrlist(const char* path, struct attrlist * attrList, void * attrBuf,
+	 size_t attrBufSize, unsigned long options);
+
+     int
+     fsetattrlist(int fd, struct attrlist * attrList, void * attrBuf,
+	 size_t attrBufSize, unsigned long options);
+
+DESCRIPTION
+     The setattrlist() and fsetattrlist() functions set attributes (that is,
+     metadata) of file system objects.	They are the logical opposite of
+     getattrlist(2).  The setattrlist() function sets attributes about the
+     file system object specified by path from the values in the buffer speci-
+     fied by attrBuf and attrBufSize; the fsetattrlist() function does the
+     same for the fd file descriptor.  The attrList parameter determines what
+     attributes are set.  The options parameter lets you control specific
+     aspects of the function's behaviour.
+
+     The functions are only supported by certain volume format implementa-
+     tions.  For maximum compatibility, client programs should use high-level
+     APIs (such as the Carbon File Manager) to access file system attributes.
+     These high-level APIs include logic to emulate file system attributes on
+     volumes that don't support setattrlist() and fsetattrlist().
+
+     The path parameter for setattrlist() must reference a valid file system
+     object.  All directories listed in the path name leading to the object
+     must be searchable.  The fd parameter for fsetattrlist() must be a valid
+     file descriptor for the calling process.  You must own the file system
+     object in order to set any of the following attributes:
+
+     ATTR_CMN_GRPID
+     ATTR_CMN_ACCESSMASK
+     ATTR_CMN_FLAGS
+     ATTR_CMN_CRTIME
+     ATTR_CMN_MODTIME
+     ATTR_CMN_CHGTIME
+     ATTR_CMN_ACCTIME
+
+     You must be root (that is, your process's effective UID must be 0) in
+     order to change the ATTR_CMN_OWNERID attribute.  Setting other attributes
+     requires that you have write access to the object.
+
+     The attrList parameter is a pointer to an attrlist structure.  You are
+     responsible for filling out all fields of this structure before calling
+     the function.  See the discussion of the getattrlist(2) function for a
+     detailed description of this structure.  To set an attribute you must set
+     the corresponding bit in the appropriate attrgroup_t field of the
+     attrlist structure.
+
+     The attrBuf and attrBufSize parameters specify a buffer that contains the
+     attribute values to set.  Attributes are packed in exactly the same way
+     as they are returned from getattrlist(2) except that, when setting
+     attributes, the buffer does not include the leading u_int32_t length
+     value.
+
+     The options parameter is a bit set that controls the behaviour of
+     setattrlist().  The following option bits are defined.
+
+     FSOPT_NOFOLLOW  If this bit is set, setattrlist() will not follow a sym-
+		     link if it occurs as the last component of path.
+
+RETURN VALUES
+     Upon successful completion a value of 0 is returned.  Otherwise, a value
+     of -1 is returned and errno is set to indicate the error.
+
+COMPATIBILITY
+     Not all volumes support setattrlist().  However, if a volume supports
+     getattrlist(2), it must also support setattrlist().  See the documenta-
+     tion for getattrlist(2) for details on how to tell whether a volume sup-
+     ports it.
+
+     The setattrlist() function has been undocumented for more than two years.
+     In that time a number of volume format implementations have been created
+     without a proper specification for the behaviour of this routine.	You
+     may encounter volume format implementations with slightly different be-
+     haviour than what is described here.  Your program is expected to be tol-
+     erant of this variant behaviour.
+
+     If you're implementing a volume format that supports setattrlist(), you
+     should be careful to support the behaviour specified by this document.
+
+ERRORS
+     setattrlist() and fsetattrlist() will fail if:
+
+     [ENOTSUP]		The call is not supported by the volume.
+
+     [ENOTDIR]		A component of the path for setattrlist() prefix is
+			not a directory.
+
+     [ENAMETOOLONG]	A component of a path name for setattrlist() exceeded
+			NAME_MAX characters, or an entire path name exceeded
+			PATH_MAX characters.
+
+     [ENOENT]		The file system object for setattrlist() does not
+			exist.
+
+     [EBADF]		The file descriptor argument for fsetattrlist() is not
+			a valid file descriptor.
+
+     [EROFS]		The volume is read-only.
+
+     [EACCES]		Search permission is denied for a component of the
+			path prefix for setattrlist().
+
+     [ELOOP]		Too many symbolic links were encountered in translat-
+			ing the pathname for setattrlist().
+
+     [EFAULT]		path, attrList or attrBuf points to an invalid
+			address.
+
+     [EINVAL]		The bitmapcount field of attrList is not
+			ATTR_BIT_MAP_COUNT.
+
+     [EINVAL]		You try to set an invalid attribute.
+
+     [EINVAL]		You try to set an attribute that is read-only.
+
+     [EINVAL]		You try to set volume attributes and directory or file
+			attributes at the same time.
+
+     [EINVAL]		You try to set volume attributes but path does not
+			reference the root of the volume.
+
+     [EPERM]		You try to set an attribute that can only be set by
+			the owner.
+
+     [EACCES]		You try to set an attribute that's only settable if
+			you have write permission, and you do not have write
+			permission.
+
+     [EINVAL]		The buffer size you specified in attrBufSize is too
+			small to hold all the attributes that you are trying
+			to set.
+
+     [EIO]		An I/O error occurred while reading from or writing to
+			the file system.
+
+CAVEATS
+     If you try to set any volume attributes, you must set ATTR_VOL_INFO in
+     the volattr field, even though it consumes no data from the attribute
+     buffer.
+
+     For more caveats, see also the compatibility notes above.
+
+EXAMPLES
+     The following code shows how to set the file type and creator of a file
+     by getting the ATTR_CMN_FNDRINFO attribute using getattrlist(2), modify-
+     ing the appropriate fields of the 32-byte Finder information structure,
+     and then setting the attribute back using setattrlist().  This assumes
+     that the target volume supports the required attributes
+
+     #include <assert.h>
+     #include <stdio.h>
+     #include <stddef.h>
+     #include <string.h>
+     #include <sys/attr.h>
+     #include <sys/errno.h>
+     #include <unistd.h>
+     #include <sys/vnode.h>
+
+     typedef struct attrlist attrlist_t;
+
+     struct FInfoAttrBuf {
+	 u_int32_t	 length;
+	 fsobj_type_t	 objType;
+	 char		 finderInfo[32];
+     };
+     typedef struct FInfoAttrBuf FInfoAttrBuf;
+
+     static int FInfoDemo(
+	 const char *path,
+	 const char *type,
+	 const char *creator
+     )
+     {
+	 int		 err;
+	 attrlist_t	 attrList;
+	 FInfoAttrBuf	 attrBuf;
+
+	 assert( strlen(type)	 == 4 );
+	 assert( strlen(creator) == 4 );
+
+	 memset(&attrList, 0, sizeof(attrList));
+	 attrList.bitmapcount = ATTR_BIT_MAP_COUNT;
+	 attrList.commonattr  = ATTR_CMN_OBJTYPE | ATTR_CMN_FNDRINFO;
+
+	 err = getattrlist(path, &attrList, &attrBuf, sizeof(attrBuf), 0);
+	 if (err != 0) {
+	     err = errno;
+	 }
+
+	 if ( (err == 0) && (attrBuf.objType != VREG) ) {
+	     fprintf(stderr, "Not a standard file.\n");
+	     err = EINVAL;
+	 } else {
+	     memcpy( &attrBuf.finderInfo[0], type,    4 );
+	     memcpy( &attrBuf.finderInfo[4], creator, 4 );
+
+	     attrList.commonattr = ATTR_CMN_FNDRINFO;
+	     err = setattrlist(
+		 path,
+		 &attrList,
+		 attrBuf.finderInfo,
+		 sizeof(attrBuf.finderInfo),
+		 0
+	     );
+	 }
+
+	 return err;
+     }
+
+SEE ALSO
+     chflags(2), chmod(2), chown(2), getattrlist(2), getdirentriesattr(2),
+     searchfs(2), utimes(2)
+
+HISTORY
+     A setattrlist() function call appeared in Darwin 1.3.1 (Mac OS X version
+     10.0).
+
+Darwin			       December 15, 2003			Darwin

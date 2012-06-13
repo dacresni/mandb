@@ -1,0 +1,61 @@
+MPROTECT(2)		    BSD System Calls Manual		   MPROTECT(2)
+
+NAME
+     mprotect -- control the protection of pages
+
+SYNOPSIS
+     #include <sys/mman.h>
+
+     int
+     mprotect(void *addr, size_t len, int prot);
+
+DESCRIPTION
+     The mprotect() system call changes the specified pages to have protection
+     prot.  Not all implementations will guarantee protection on a page basis
+     but Mac OS X's current implementation does.
+
+     When a program violates the protections of a page, it gets a SIGBUS or
+     SIGSEGV signal.
+
+     Currently prot can be one or more of the following:
+
+     PROT_NONE	 No permissions at all.
+     PROT_READ	 The pages can be read.
+     PROT_WRITE  The pages can be written.
+     PROT_EXEC	 The pages can be executed.
+
+RETURN VALUES
+     Upon successful completion, a value of 0 is returned.  Otherwise, a value
+     of -1 is returned and errno is set to indicate the error.
+
+ERRORS
+     mprotect() will fail if:
+
+     [EACCES]		The requested protection conflicts with the access
+			permissions of the process on the specified address
+			range.
+
+     [EINVAL]		addr is not a multiple of the page size (i.e.  addr is
+			not page-aligned).
+
+     [ENOTSUP]		The combination of accesses requested in prot is not
+			supported.
+
+LEGACY SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/mman.h>
+
+     The include file <sys/types.h> is necessary.
+
+     int
+     mprotect(caddr_t addr, size_t len, int prot);
+
+     The type of addr has changed.
+
+SEE ALSO
+     madvise(2), mincore(2), msync(2), munmap(2), compat(5)
+
+HISTORY
+     The mprotect() function first appeared in 4.4BSD.
+
+BSD			       October 16, 2008 			   BSD

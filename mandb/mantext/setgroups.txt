@@ -1,0 +1,40 @@
+SETGROUPS(2)		    BSD System Calls Manual		  SETGROUPS(2)
+
+NAME
+     setgroups -- set group access list
+
+SYNOPSIS
+     #include <sys/param.h>
+     #include <unistd.h>
+
+     int
+     setgroups(int ngroups, const gid_t *gidset);
+
+DESCRIPTION
+     Setgroups() sets the group access list of the current user process
+     according to the array gidset.  The parameter ngroups indicates the num-
+     ber of entries in the array and must be no more than {NGROUPS_MAX}.
+
+     Only the super-user may set new groups.
+
+RETURN VALUES
+     A 0 value is returned on success, -1 on error, with an error code stored
+     in errno.
+
+ERRORS
+     The setgroups() call will fail if:
+
+     [EINVAL]		The value of ngroups is greater than {NGROUPS_MAX}.
+
+     [EPERM]		The caller is not the super-user.
+
+     [EFAULT]		The address specified for gidset is outside the
+			process address space.
+
+SEE ALSO
+     getgroups(2), initgroups(3)
+
+HISTORY
+     The setgroups() function call appeared in 4.2BSD.
+
+4.2 Berkeley Distribution	April 16, 1994	     4.2 Berkeley Distribution

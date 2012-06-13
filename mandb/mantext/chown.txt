@@ -1,0 +1,99 @@
+CHOWN(2)		    BSD System Calls Manual		      CHOWN(2)
+
+NAME
+     chown, fchown, lchown -- change owner and group of a file
+
+SYNOPSIS
+     #include <unistd.h>
+
+     int
+     chown(const char *path, uid_t owner, gid_t group);
+
+     int
+     fchown(int fildes, uid_t owner, gid_t group);
+
+     int
+     lchown(const char *path, uid_t owner, gid_t group);
+
+DESCRIPTION
+     The owner ID and group ID of the file named by path or referenced by
+     fildes is changed as specified by the arguments owner and group.  The
+     owner of a file may change the group to a group of which he or she is a
+     member, but the change owner capability is restricted to the super-user.
+
+     The chown() system call clears the set-user-id and set-group-id bits on
+     the file to prevent accidental or mischievous creation of set-user-id and
+     set-group-id programs if not executed by the super-user.  The chown()
+     system call follows symbolic links to operate on the target of the link
+     rather than the link itself.
+
+     The fchown() system call is particularly useful when used in conjunction
+     with the file locking primitives (see flock(2)).
+
+     The lchown() system call is similar to chown() but does not follow sym-
+     bolic links.
+
+     One of the owner or group id's may be left unchanged by specifying it as
+     -1.
+
+RETURN VALUES
+     Upon successful completion, the value 0 is returned; otherwise the
+     value -1 is returned and the global variable errno is set to indicate the
+     error.
+
+ERRORS
+     The chown() and lchown() system calls will fail if:
+
+     [EACCES]		Search permission is denied for a component of the
+			path prefix.
+
+     [EFAULT]		The path argument points outside the process's allo-
+			cated address space.
+
+     [ELOOP]		Too many symbolic links are encountered in translating
+			the pathname.  This is taken to be indicative of a
+			looping symbolic link.
+
+     [ENAMETOOLONG]	A component of a pathname exceeded 255 characters, or
+			an entire path name exceeded 1023 characters.
+
+     [ENOENT]		A component of path does not exist.
+
+     [ENOTDIR]		A component of the path prefix is not a directory.
+
+     The fchown() system call will fail if:
+
+     [EBADF]		The fildes argument does not refer to a valid descrip-
+			tor.
+
+     [EINVAL]		The fildes argument refers to a socket, not a file.
+
+     Any of these calls will fail if:
+
+     [EINTR]		Its execution is interrupted by a signal.
+
+     [EIO]		An I/O error occurs while reading from or writing to
+			the file system.
+
+     [EPERM]		The effective user ID does not match the owner of the
+			file and the calling process does not have appropriate
+			(i.e., root) privileges.
+
+     [EROFS]		The named file resides on a read-only file system.
+
+SEE ALSO
+     chgrp(1), chmod(2), flock(2), chown(8)
+
+STANDARDS
+     The chown() system call is expected to conform to ISO/IEC 9945-1:1990
+     (``POSIX.1'').
+
+HISTORY
+     The chown() function appeared in Version 7 AT&T UNIX.  The fchown() sys-
+     tem call appeared in 4.2BSD.
+
+     The chown() and fchown() system calls were changed to follow symbolic
+     links in 4.4BSD.  The lchown() system call was added in FreeBSD 3.0 to
+     compensate for the loss of functionality.
+
+BSD				April 19, 1994				   BSD

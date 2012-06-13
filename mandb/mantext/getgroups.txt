@@ -1,0 +1,51 @@
+GETGROUPS(2)		    BSD System Calls Manual		  GETGROUPS(2)
+
+NAME
+     getgroups -- get group access list
+
+SYNOPSIS
+     #include <unistd.h>
+
+     int
+     getgroups(int gidsetsize, gid_t grouplist[]);
+
+DESCRIPTION
+     getgroups() gets the current group access list of the current user
+     process and stores it in the array grouplist[].  The parameter gidsetsize
+     indicates the number of entries that may be placed in grouplist[].
+     getgroups() returns the actual number of groups returned in grouplist[].
+     However, no more than {NGROUPS_MAX} will be returned. If gidsetsize is 0,
+     getgroups() returns the number of groups without modifying the
+     grouplist[] array.
+
+RETURN VALUES
+     A successful call returns the number of groups in the group set.  Other-
+     wise, a value of -1 is returned and the global integer variable errno is
+     set to indicate the error.
+
+ERRORS
+     The possible errors for getgroups() are:
+
+     [EFAULT]		The argument grouplist specifies an invalid address.
+
+     [EINVAL]		The argument gidsetsize, although non-zero, is smaller
+			than the number of groups in the group set.
+
+LEGACY DESCRIPTION
+     If _DARWIN_C_SOURCE is defined, getgroups() can return more than
+     {NGROUPS_MAX} groups.
+
+LEGACY SYNOPSIS
+     #include <sys/param.h>
+     #include <sys/types.h>
+     #include <unistd.h>
+
+     The include files <sys/param.h> and <sys/types.h> are necessary.
+
+SEE ALSO
+     setgroups(2), initgroups(3), compat(5)
+
+HISTORY
+     The getgroups() function call appeared in 4.2BSD.
+
+4.2 Berkeley Distribution	October 2, 2008      4.2 Berkeley Distribution

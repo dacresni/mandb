@@ -1,0 +1,41 @@
+MINHERIT(2)		    BSD System Calls Manual		   MINHERIT(2)
+
+NAME
+     minherit -- control the inheritance of pages
+
+SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/mman.h>
+
+     int
+     minherit(caddr_t addr, size_t len, int inherit);
+
+DESCRIPTION
+     The minherit() system call changes the specified pages to have the inher-
+     itance characteristic inherit, which can be set to VM_INHERIT_NONE,
+     VM_INHERIT_COPY, or VM_INHERIT_SHARE.  Not all implementations will guar-
+     antee that the inheritance characteristic can be set on a page basis; the
+     granularity of changes may be as large as an entire region.
+
+RETURN VALUES
+     The minherit() function returns the value 0 if successful; otherwise the
+     value -1 is returned and the global variable errno is set to indicate the
+     error.
+
+ERRORS
+     The minherit() system call will fail if:
+
+     [EINVAL]		The virtual address range specified by the addr and
+			len arguments is not valid.
+
+     [EACCES]		The flags specified by the inherit argument were not
+			valid for the pages specified by the addr and len
+			arguments.
+
+SEE ALSO
+     madvise(2), mincore(2), mprotect(2), msync(2), munmap(2)
+
+HISTORY
+     The minherit() function first appeared in OpenBSD.
+
+BSD				 June 9, 1993				   BSD

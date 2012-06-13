@@ -1,0 +1,45 @@
+SETREUID(2)		    BSD System Calls Manual		   SETREUID(2)
+
+NAME
+     setreuid -- set real and effective user IDs
+
+LIBRARY
+     Standard C Library (libc, -lc)
+
+SYNOPSIS
+     #include <unistd.h>
+
+     int
+     setreuid(uid_t ruid, uid_t euid);
+
+DESCRIPTION
+     The real and effective user IDs of the current process are set according
+     to the arguments.	If ruid or euid is -1, the current uid is filled in by
+     the system.  Unprivileged users may change the real user ID to the effec-
+     tive user ID and vice-versa; only the super-user may make other changes.
+
+     The setreuid() function has been used to swap the real and effective user
+     IDs in set-user-ID programs to temporarily relinquish the set-user-ID
+     value.  This purpose is now better served by the use of the seteuid()
+     function (see setuid(2)).
+
+     When setting the real and effective user IDs to the same value, the stan-
+     dard setuid() function is preferred.
+
+RETURN VALUES
+     The setreuid() function returns the value 0 if successful; otherwise the
+     value -1 is returned and the global variable errno is set to indicate the
+     error.
+
+ERRORS
+     [EPERM]		The current process is not the super-user and a change
+			other than changing the effective user-id to the real
+			user-id was specified.
+
+SEE ALSO
+     getuid(2), issetugid(2), seteuid(2), setuid(2)
+
+HISTORY
+     The setreuid() system call appeared in 4.2BSD.
+
+BSD			       February 8, 2001 			   BSD

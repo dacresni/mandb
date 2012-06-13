@@ -1,0 +1,202 @@
+POSIX_SPAWN(2)		    BSD System Calls Manual		POSIX_SPAWN(2)
+
+NAME
+     posix_spawn posix_spawnp -- spawn a process
+
+SYNOPSIS
+     #include <spawn.h>
+
+     int
+     posix_spawn(pid_t *restrict pid, const char *restrict path,
+	 const posix_spawn_file_actions_t *file_actions,
+	 const posix_spawnattr_t *restrict attrp, char *const argv[restrict],
+	 char *const envp[restrict]);
+
+     int
+     posix_spawnp(pid_t *restrict pid, const char *restrict file,
+	 const posix_spawn_file_actions_t *file_actions,
+	 const posix_spawnattr_t *restrict attrp, char *const argv[restrict],
+	 char *const envp[restrict]);
+
+DESCRIPTION
+     The posix_spawn() function creates a new process from the executable
+     file, called the new process file, specified by path, which is an abso-
+     lute or relative path to the file.  The posix_spawnp() function is iden-
+     tical to the posix_spawn() function if the file specified contains a
+     slash character; otherwise, the file parameter is used to construct a
+     pathname, with its path prefix being obtained by a search of the path
+     specified in the environment by the ``PATH variable''.  If this variable
+     isn't specified, the default path is set according to the _PATH_DEFPATH
+     definition in <paths.h>, which is set to ``/usr/bin:/bin''.  This path-
+     name either refers to an executable object file, or a file of data for an
+     interpreter; execve(2) for more details.
+
+     The argument pid is a pointer to a pid_t variable to receive the pid of
+     the spawned process; if this is NULL, then the pid of the spawned process
+     is not returned.  If this pointer is non-NULL, then on successful comple-
+     tion, the variable will be modified to contain the pid of the spawned
+     process.  The value is undefined in the case of a failure.
+
+     The argument file_actions is either NULL, or it is a a pointer to a file
+     actions object that was initialized by a call to
+     posix_spawn_file_actions_init(3) and represents zero or more file
+     actions.
+
+     File descriptors open in the calling process image remain open in the new
+     process image, except for those for which the close-on-exec flag is set
+     (see close(2) and fcntl(2)).  Descriptors that remain open are unaffected
+     by posix_spawn() unless their behaviour is modified by a file action; see
+     posix_spawn_file_actions_init(3) for more information.
+
+     The argument attrp is either NULL, or it is a pointer to an attributes
+     object that was initialized by a call to posix_spawnattr_init(3) and rep-
+     resents a set of spawn attributes to apply.  If NULL, then the default
+     attributes are applied; otherwise, these attributes can control various
+     aspects of the spawned process, and are applied prior to the spawned
+     process beginning execution; see posix_spawnattr_init(3) for more infor-
+     mation.
+
+     The argument argv is a pointer to a null-terminated array of character
+     pointers to null-terminated character strings.  These strings construct
+     the argument list to be made available to the new process.  At least
+     argv[0] must be present in the array, and should contain the file name of
+     the program being spawned, e.g. the last component of the path or file
+     argument.
+
+     The argument envp is a pointer to a null-terminated array of character
+     pointers to null-terminated strings.  A pointer to this array is normally
+     stored in the global variable environ. These strings pass information to
+     the new process that is not directly an argument to the command (see
+     environ(7)).
+
+     Signals set to be ignored in the calling process are set to be ignored in
+     the new process, unless the behaviour is modified by user specified spawn
+     attributes.  Signals which are set to be caught in the calling process
+     image are set to default action in the new process image.	Blocked sig-
+     nals remain blocked regardless of changes to the signal action, unless
+     the mask is overridden by user specified spawn attributes.  The signal
+     stack is reset to be undefined (see sigaction(2) for more information).
+
+     By default, the effective user ID and group ID will be the same as those
+     of the calling process image; however, this may be overridden to force
+     them to be the real user ID and group ID of the parent process by user
+     specified spawn attributes (see posix_spawnattr_init(3) for more informa-
+     tion).
+
+     If the set-user-ID mode bit of the new process image file is set (see
+     chmod(2)), the effective user ID of the new process image is set to the
+     owner ID of the new process image file.  If the set-group-ID mode bit of
+     the new process image file is set, the effective group ID of the new
+     process image is set to the group ID of the new process image file.  (The
+     effective group ID is the first element of the group list.)  The real
+     user ID, real group ID and supplementary group IDs of the new process
+     image remain the same as the calling process image.  After any set-user-
+     ID and set-group-ID processing, the effective user ID is recorded as the
+     saved set-user-ID, and the effective group ID is recorded as the saved
+     set-group-ID.  These values may be used in changing the effective IDs
+     later (see setuid(2)).
+
+     The new process also inherits the following attributes from the calling
+     process:
+
+	   parent process ID	see getppid(2)
+	   process group ID	see getpgrp(2), posix_spawnattr_init(3)
+	   access groups	see getgroups(2)
+	   working directory	see chdir(2)
+	   root directory	see chroot(2)
+	   control terminal	see termios(4)
+	   resource usages	see getrusage(2)
+	   interval timers	see getitimer(2)
+	   resource limits	see getrlimit(2)
+	   file mode mask	see umask(2)
+	   signal mask		see sigaction(2), sigsetmask(2),
+				posix_spawnattr_init(3)
+
+     When a program is executed as a result of a posix_spawn() or
+     posix_spawnp() call, it is entered as follows:
+
+	   main(argc, argv, envp)
+	   int argc;
+	   char **argv, **envp;
+
+     where argc is the number of elements in argv (the ``arg count'') and argv
+     points to the array of character pointers to the arguments themselves.
+
+RETURN VALUES
+     If the pid argument is NULL, no pid is returned to the calling process;
+     if it is non-NULL, then posix_spawn() and posix_spawnp() functions return
+     the process ID of the child process into the pid_t variable pointed to by
+     the pid argument and return a 0 on success.  If an error occurs, they
+     return a non-zero error code as the function return value, and no child
+     process is created.
+
+ERRORS
+     The posix_spawn() and posix_spawnp() functions will fail and return to
+     the calling process if:
+
+     [EINVAL]		The value specified by file_actions or attrp is
+			invalid.
+
+     [E2BIG]		The number of bytes in the new process's argument list
+			is larger than the system-imposed limit.  This limit
+			is specified by the sysctl(3) MIB variable
+			KERN_ARGMAX.
+
+     [EACCES]		Search permission is denied for a component of the
+			path prefix.
+
+     [EACCES]		The new process file is not an ordinary file.
+
+     [EACCES]		The new process file mode denies execute permission.
+
+     [EACCES]		The new process file is on a filesystem mounted with
+			execution disabled (MNT_NOEXEC in <sys/mount.h>).
+
+     [EFAULT]		The new process file is not as long as indicated by
+			the size values in its header.
+
+     [EFAULT]		Path, argv, or envp point to an illegal address.
+
+     [EIO]		An I/O error occurred while reading from the file sys-
+			tem.
+
+     [ELOOP]		Too many symbolic links were encountered in translat-
+			ing the pathname.  This is taken to be indicative of a
+			looping symbolic link.
+
+     [ENAMETOOLONG]	A component of a pathname exceeded {NAME_MAX} charac-
+			ters, or an entire path name exceeded {PATH_MAX} char-
+			acters.
+
+     [ENOENT]		The new process file does not exist.
+
+     [ENOEXEC]		The new process file has the appropriate access per-
+			mission, but has an unrecognized format (e.g., an
+			invalid magic number in its header).
+
+     [ENOMEM]		The new process requires more virtual memory than is
+			allowed by the imposed maximum (getrlimit(2)).
+
+     [ENOTDIR]		A component of the path prefix is not a directory.
+
+     [ETXTBSY]		The new process file is a pure procedure (shared text)
+			file that is currently open for writing or reading by
+			some process.
+
+CAVEAT
+     If a program is setuid to a non-super-user, but is executed when the real
+     uid is ``root'', then the program has some of the powers of a super-user
+     as well.
+
+SEE ALSO
+     exit(2), fork(2), execl(3), sysctl(3), environ(7),
+     posix_spawnattr_init(3), posix_spawn_file_actions_init(3),
+
+STANDARDS
+     Version 3 of the Single UNIX Specification (``SUSv3'') [SPN]
+
+HISTORY
+     The posix_spawn() and posix_spawnp() function calls appeared in Version 3
+     of the Single UNIX Specification (``SUSv3'') [SPN].
+
+Mac OS X			August 9, 2007			      Mac OS X

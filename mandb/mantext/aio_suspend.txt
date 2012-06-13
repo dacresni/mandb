@@ -1,0 +1,60 @@
+AIO_SUSPEND(2)		    BSD System Calls Manual		AIO_SUSPEND(2)
+
+NAME
+     aio_suspend -- suspend until asynchronous I/O operations or timeout com-
+     plete (REALTIME)
+
+LIBRARY
+     Standard C Library (libc, -lc)
+
+SYNOPSIS
+     #include <aio.h>
+
+     int
+     aio_suspend(const struct aiocb *const list[], int nent,
+	 const struct timespec *timeout);
+
+DESCRIPTION
+     The aio_suspend() system call suspends the calling process until at least
+     one of the specified asynchronous I/O requests have completed, a signal
+     is delivered, or the timeout has passed.
+
+     The list argument is an array of nent pointers to asynchronous I/O
+     requests.	Array members containing NULL will be silently ignored.
+
+     If timeout is a non-nil pointer, it specifies a maximum interval to sus-
+     pend.  If timeout is a nil pointer, the suspend blocks indefinitely.  To
+     effect a poll, the timeout should point to a zero-value timespec struc-
+     ture.
+
+RETURN VALUES
+     If one or more of the specified asynchronous I/O requests have completed,
+     aio_suspend() returns 0.  Otherwise, it returns -1 and sets errno to
+     indicate the error, as enumerated below.
+
+ERRORS
+     The aio_suspend() system call will fail if:
+
+     [EAGAIN]		The timeout expired before any of the listed I/O
+			requests completed.
+
+     [EINTR]		The suspend was interrupted by a signal.
+
+     [EINVAL]		The list argument contains more than AIO_LISTIO_MAX
+			asynchronous I/O requests, or at least one of the
+			requests is not valid.
+
+SEE ALSO
+     aio_cancel(2), aio_error(2), aio_return(2), aio_write(2), aio(4)
+
+STANDARDS
+     The aio_suspend() system call is expected to conform to the IEEE Std
+     1003.1 (``POSIX.1'') standard.
+
+HISTORY
+     The aio_suspend() system call first appeared in FreeBSD 3.0.
+
+AUTHORS
+     This manual page was written by Wes Peters <wes@softweyr.com>.
+
+BSD				 June 2, 1999				   BSD

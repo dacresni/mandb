@@ -1,0 +1,61 @@
+AUDIT(2)		    BSD System Calls Manual		      AUDIT(2)
+
+NAME
+     audit -- commit BSM audit record to audit log
+
+SYNOPSIS
+     #include <bsm/audit.h>
+
+     int
+     audit(const char *record, u_int length);
+
+DESCRIPTION
+     The audit() system call submits a completed BSM audit record to the sys-
+     tem audit log.
+
+     The record argument is a pointer to the specific event to be recorded and
+     length is the size in bytes of the data to be written.
+
+RETURN VALUES
+     Upon successful completion, the value 0 is returned; otherwise the
+     value -1 is returned and the global variable errno is set to indicate the
+     error.
+
+ERRORS
+     The audit() system call will fail and the data never written if:
+
+     [EFAULT]		The record argument is beyond the allocated address
+			space of the process.
+
+     [EINVAL]		The token ID is invalid or length is larger than
+			MAXAUDITDATA.
+
+     [EPERM]		The process does not have sufficient permission to
+			complete the operation.
+
+SEE ALSO
+     auditon(2), getaudit(2), getaudit_addr(2), getauid(2), setaudit(2),
+     setaudit_addr(2), setauid(2), libbsm(3)
+
+HISTORY
+     The OpenBSM implementation was created by McAfee Research, the security
+     division of McAfee Inc., under contract to Apple Computer Inc. in 2004.
+     It was subsequently adopted by the TrustedBSD Project as the foundation
+     for the OpenBSM distribution.
+
+AUTHORS
+     This software was created by McAfee Research, the security research divi-
+     sion of McAfee, Inc., under contract to Apple Computer Inc.  Additional
+     authors include Wayne Salamon, Robert Watson, and SPARTA Inc.
+
+     The Basic Security Module (BSM) interface to audit records and audit
+     event stream format were defined by Sun Microsystems.
+
+     This manual page was written by Tom Rhodes <trhodes@FreeBSD.org>.
+
+BUGS
+     The kernel does not fully validate that the argument passed is syntacti-
+     cally valid BSM.  Submitting invalid audit records may corrupt the audit
+     log.
+
+BSD				April 19, 2005				   BSD

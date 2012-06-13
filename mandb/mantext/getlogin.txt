@@ -1,0 +1,66 @@
+GETLOGIN(2)		    BSD System Calls Manual		   GETLOGIN(2)
+
+NAME
+     getlogin, setlogin -- get/set login name
+
+SYNOPSIS
+     #include <unistd.h>
+
+     char *
+     getlogin(void);
+
+     int
+     setlogin(const char *name);
+
+DESCRIPTION
+     The getlogin() routine returns the login name of the user associated with
+     the current session, as previously set by setlogin().  The name is nor-
+     mally associated with a login shell at the time a session is created, and
+     is inherited by all processes descended from the login shell.  (This is
+     true even if some of those processes assume another user ID, for example
+     when su(1) is used.)
+
+     Setlogin() sets the login name of the user associated with the current
+     session to name.  This call is restricted to the super-user, and is nor-
+     mally used only when a new session is being created on behalf of the
+     named user (for example, at login time, or when a remote shell is
+     invoked).
+
+RETURN VALUES
+     If a call to getlogin() succeeds, it returns a pointer to a null-termi-
+     nated string in a static buffer.  If the name has not been set, it
+     returns NULL.  If a call to setlogin() succeeds, a value of 0 is
+     returned.	If setlogin() fails, a value of -1 is returned and an error
+     code is placed in the global location errno.
+
+ERRORS
+     The following errors may be returned by these calls:
+
+     [EFAULT]		The name parameter gave an invalid address.
+
+     [EINVAL]		The name parameter pointed to a string that was too
+			long.  Login names are limited to MAXLOGNAME (from
+			<sys/param.h>) characters, currently 12.
+
+     [EPERM]		The caller tried to set the login name and was not the
+			super-user.
+
+SEE ALSO
+     setsid(2)
+
+BUGS
+     Login names are limited in length by setlogin().  However, lower limits
+     are placed on login names elsewhere in the system (UT_NAMESIZE in
+     <utmp.h>).
+
+     In earlier versions of the system, getlogin() failed unless the process
+     was associated with a login terminal.  The current implementation (using
+     setlogin()) allows getlogin to succeed even when the process has no con-
+     trolling terminal.  In earlier versions of the system, the value returned
+     by getlogin() could not be trusted without checking the user ID.  Porta-
+     ble programs should probably still make this check.
+
+HISTORY
+     The getlogin() function first appeared in 4.4BSD.
+
+4.2 Berkeley Distribution	 June 9, 1993	     4.2 Berkeley Distribution

@@ -1,0 +1,133 @@
+MOUNT(2)		    BSD System Calls Manual		      MOUNT(2)
+
+NAME
+     mount, unmount -- mount or dismount a filesystem
+
+SYNOPSIS
+     #include <sys/param.h>
+     #include <sys/mount.h>
+
+     int
+     mount(const char *type, const char *dir, int flags, void *data);
+
+     int
+     unmount(const char *dir, int flags);
+
+DESCRIPTION
+     The mount() function grafts a filesystem object onto the system file tree
+     at the point dir.	The argument data describes the filesystem object to
+     be mounted.  The argument type tells the kernel how to interpret data
+     (See type below).	The contents of the filesystem become available
+     through the new mount point dir.  Any files in dir at the time of a suc-
+     cessful mount are swept under the carpet so to speak, and are unavailable
+     until the filesystem is unmounted.
+
+     The following flags may be specified to suppress default semantics which
+     affect filesystem access.
+
+     MNT_RDONLY       The filesystem should be treated as read-only; Even the
+		      super-user may not write on it.
+
+     MNT_NOEXEC       Do not allow files to be executed from the filesystem.
+
+     MNT_NOSUID       Do not honor setuid or setgid bits on files when execut-
+		      ing them.
+
+     MNT_NODEV	      Do not interpret special files on the filesystem.
+
+     MNT_UNION	      Union with underlying filesystem instead of obscuring
+		      it.
+
+     MNT_SYNCHRONOUS  All I/O to the filesystem should be done synchronously.
+
+     The flag MNT_UPDATE indicates that the mount command is being applied to
+     an already mounted filesystem.  This allows the mount flags to be changed
+     without requiring that the filesystem be unmounted and remounted.	Some
+     filesystems may not allow all flags to be changed.  For example, most
+     filesystems will not allow a change from read-write to read-only.
+
+     The flag MNT_RELOAD causes the vfs subsystem to update its data struc-
+     tures pertaining to the specified already mounted filesystem.
+
+     The type argument defines the type of the filesystem.
+
+     Data is a pointer to a structure that contains the type specific argu-
+     ments to mount.  The format for these argument structures is described in
+     the manual page for each filesystem.
+
+     The umount() function call disassociates the filesystem from the speci-
+     fied mount point dir.
+
+     The flags argument may specify MNT_FORCE to specify that the filesystem
+     should be forcibly unmounted even if files are still active.  Active spe-
+     cial devices continue to work, but any further accesses to any other
+     active files result in errors even if the filesystem is later remounted.
+
+RETURN VALUES
+     The mount() returns the value 0 if the mount was successful, otherwise -1
+     is returned and the variable errno is set to indicate the error.
+
+     Umount returns the value 0 if the umount succeeded; otherwise -1 is
+     returned and the variable errno is set to indicate the error.
+
+ERRORS
+     Mount() will fail when one of the following occurs:
+
+     [EPERM]	     The caller is not the super-user, and the device-node and
+		     the mountpoint do not have adequate ownership and permis-
+		     sions.
+
+     [ENAMETOOLONG]  A component of a pathname exceeded {NAME_MAX} characters,
+		     or an entire path name exceeded {PATH_MAX} characters.
+
+     [ELOOP]	     Too many symbolic links were encountered in translating a
+		     pathname.
+
+     [ENOENT]	     A component of dir does not exist.
+
+     [ENOTDIR]	     A component of name is not a directory, or a path prefix
+		     of special is not a directory.
+
+     [EINVAL]	     A pathname contains a character with the high-order bit
+		     set.
+
+     [EBUSY]	     Another process currently holds a reference to dir.
+
+     [EFAULT]	     Dir points outside the process's allocated address space.
+
+     Umount may fail with one of the following errors:
+
+     [EPERM]	     The caller is not the super-user, and the mount() was not
+		     done by the user.
+
+     [ENOTDIR]	     A component of the path is not a directory.
+
+     [EINVAL]	     The pathname contains a character with the high-order bit
+		     set.
+
+     [ENAMETOOLONG]  A component of a pathname exceeded {NAME_MAX} characters,
+		     or an entire path name exceeded {PATH_MAX} characters.
+
+     [ELOOP]	     Too many symbolic links were encountered in translating
+		     the pathname.
+
+     [EINVAL]	     The requested directory is not in the mount table.
+
+     [EBUSY]	     A process is holding a reference to a file located on the
+		     filesystem.
+
+     [EIO]	     An I/O error occurred while writing cached filesystem
+		     information.
+
+     [EFAULT]	     Dir points outside the process's allocated address space.
+
+SEE ALSO
+     mount(8), umount(8)
+
+BUGS
+     Some of the error codes need translation to more obvious messages.
+
+HISTORY
+     Mount() and umount() function calls appeared in Version 6 AT&T UNIX.
+
+4th Berkeley Distribution      December 11, 1993     4th Berkeley Distribution

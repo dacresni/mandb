@@ -1,0 +1,57 @@
+GETSOCKNAME(2)		    BSD System Calls Manual		GETSOCKNAME(2)
+
+NAME
+     getsockname -- get socket name
+
+SYNOPSIS
+     #include <sys/socket.h>
+
+     int
+     getsockname(int socket, struct sockaddr *restrict address,
+	 socklen_t *restrict address_len);
+
+DESCRIPTION
+     The getsockname() fynction returns the current address for the specified
+     socket.
+
+     The address_len parameter should be initialized to indicate the amount of
+     space pointed to by address.  On return it contains the actual size of
+     the address returned (in bytes).
+
+     The address is truncated if the buffer provided is too small.
+
+RETURN VALUES
+     The getsockname() function returns the value 0 if successful; otherwise
+     the value -1 is returned and the global variable errno is set to indicate
+     the error.
+
+ERRORS
+     The getsockname() system call will succeed unless:
+
+     [EBADF]		The argument socket is not a valid file descriptor.
+
+     [EFAULT]		The address parameter points to memory not in a valid
+			part of the process address space.
+
+     [EINVAL]		socket has been shut down.
+
+     [ENOBUFS]		Insufficient resources were available in the system to
+			perform the operation.
+
+     [ENOTSOCK] 	The argument socket is not a socket (e.g., a plain
+			file).
+
+     [EOPNOTSUPP]	getsockname() is not supported for the protocol in use
+			by socket.
+
+SEE ALSO
+     bind(2), socket(2)
+
+BUGS
+     Names bound to sockets in the UNIX domain are inaccessible; getsockname()
+     returns a zero-length address.
+
+HISTORY
+     The getsockname() call appeared in 4.2BSD.
+
+4.2 Berkeley Distribution	 June 4, 1993	     4.2 Berkeley Distribution

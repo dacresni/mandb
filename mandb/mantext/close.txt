@@ -1,0 +1,60 @@
+CLOSE(2)		    BSD System Calls Manual		      CLOSE(2)
+
+NAME
+     close -- delete a descriptor
+
+SYNOPSIS
+     #include <unistd.h>
+
+     int
+     close(int fildes);
+
+DESCRIPTION
+     The close() call deletes a descriptor from the per-process object refer-
+     ence table.  If this is the last reference to the underlying object, the
+     object will be deactivated.  For example, on the last close of a file the
+     current seek pointer associated with the file is lost; on the last close
+     of a socket(2) associated naming information and queued data are dis-
+     carded; on the last close of a file holding an advisory lock the lock is
+     released (see further flock(2)).
+
+     When a process exits, all associated file descriptors are freed, but
+     since there is a limit on active descriptors per processes, the close()
+     function call is useful when a large quantity of file descriptors are
+     being handled.
+
+     When a process forks (see fork(2)), all descriptors for the new child
+     process reference the same objects as they did in the parent before the
+     fork.  If a new process is then to be run using execve(2), the process
+     would normally inherit these descriptors.	Most of the descriptors can be
+     rearranged with dup2(2) or deleted with close() before the execve is
+     attempted, but if some of these descriptors will still be needed if the
+     execve fails, it is necessary to arrange for them to be closed if the
+     execve succeeds.  For this reason, the call ``fcntl(d, F_SETFD, 1)'' is
+     provided, which arranges that a descriptor will be closed after a suc-
+     cessful execve; the call ``fcntl(d, F_SETFD, 0)'' restores the default,
+     which is to not close the descriptor.
+
+RETURN VALUES
+     Upon successful completion, a value of 0 is returned.  Otherwise, a value
+     of -1 is returned and the global integer variable errno is set to indi-
+     cate the error.
+
+ERRORS
+     The close() system call will fail if:
+
+     [EBADF]		fildes is not a valid, active file descriptor.
+
+     [EINTR]		Its execution was interrupted by a signal.
+
+     [EIO]		A previously-uncommitted write(2) encountered an
+			input/output error.
+
+SEE ALSO
+     accept(2), execve(2), fcntl(2), flock(2), open(2), pipe(2), socket(2),
+     socketpair(2)
+
+STANDARDS
+     Close() conforms to IEEE Std 1003.1-1988 (``POSIX.1'').
+
+4th Berkeley Distribution	April 19, 1994	     4th Berkeley Distribution

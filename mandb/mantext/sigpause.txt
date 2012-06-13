@@ -1,0 +1,36 @@
+SIGPAUSE(2)		    BSD System Calls Manual		   SIGPAUSE(2)
+
+NAME
+     sigpause -- atomically release blocked signals and wait for interrupt
+
+LIBRARY
+     Standard C Library (libc, -lc)
+
+SYNOPSIS
+     #include <signal.h>
+
+     int
+     sigpause(int sig);
+
+DESCRIPTION
+     This interface is made obsolete by sigsuspend(2).
+
+     Sigpause() assigns sig to the set of masked signals and then waits for a
+     signal to arrive; on return the set of masked signals is restored.  Sig
+     is usually 0, indicating that no signals are to be blocked.  Sigpause()
+     always terminates by being interrupted, returning -1 with errno set to
+     EINTR.
+
+COMPATIBILITY
+     sigpause() now takes a signal value and not a mask.  This often appears
+     as a hang in sigpause$UNIX2003 or with sigpause() returning with errno
+     set to EINVAL.  Use sigsuspend() with signal masks.
+
+SEE ALSO
+     kill(2), sigaction(2), sigblock(2), sigprocmask(2), sigsuspend(2),
+     sigvec(2)
+
+HISTORY
+     The sigpause() function call appeared in 4.2BSD and has been deprecated.
+
+BSD				 June 2, 1993				   BSD

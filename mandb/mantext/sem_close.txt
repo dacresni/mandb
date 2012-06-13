@@ -1,0 +1,31 @@
+SEM_CLOSE(2)		    BSD System Calls Manual		  SEM_CLOSE(2)
+
+NAME
+     sem_close -- close a named semaphore
+
+SYNOPSIS
+     #include <semaphore.h>
+
+     int
+     sem_close(sem_t *sem);
+
+DESCRIPTION
+     The system resources associated with the named semaphore referenced by
+     sem are deallocated and the descriptor is invalidated.
+
+     If successful, sem_close() will return 0.	Otherwise, -1 is returned and
+     errno is set.
+
+ERRORS
+     sem_close() succeeds unless:
+
+     [EINVAL]		sem is not a valid semaphore descriptor.
+
+SEE ALSO
+     sem_init(2), sem_open(2), sem_unlink(2), semctl(2), semget(2), semop(2)
+
+HISTORY
+     sem_close() is specified in the POSIX Realtime Extension
+     (1003.1b-1993/1003.1i-1995).
+
+Darwin				 June 8, 2000				Darwin

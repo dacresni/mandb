@@ -1,0 +1,100 @@
+SETXATTR(2)		    BSD System Calls Manual		   SETXATTR(2)
+
+NAME
+     setxattr, fsetxattr -- set an extended attribute value
+
+SYNOPSIS
+     #include <sys/xattr.h>
+
+     int
+     setxattr(const char *path, const char *name, void *value, size_t size,
+	 u_int32_t position, int options);
+
+     int
+     fsetxattr(int fd, const char *name, void *value, size_t size,
+	 u_int32_t position, int options);
+
+DESCRIPTION
+     Extended attributes extend the basic attributes associated with files and
+     directories in the file system.  They are stored as name:data pairs asso-
+     ciated with file system objects (files, directories, symlinks, etc).
+
+     setxattr() associates name and data together as an attribute of path.
+
+     An extended attribute's name is a simple NULL-terminated UTF-8 string.
+     Value is a pointer to a data buffer of size bytes containing textual or
+     binary data to be associated with the extended attribute.	Position spec-
+     ifies the offset within the extended attribute.  In the current implemen-
+     tation, only the resource fork extended attribute makes use of this argu-
+     ment.  For all others, position is reserved and should be set to zero.
+
+     options controls how the attribute is set:
+
+     XATTR_NOFOLLOW  do not follow symbolic links.  setxattr() normally sets
+		     attributes on the target of path if it is a symbolic
+		     link.  With this option, setxattr() will act on the link
+		     itself.
+
+     XATTR_CREATE    fail if the named attribute already exists.
+
+     XATTR_REPLACE   fail if the named attribute does not exist.  Failure to
+		     specify XATTR_REPLACE or XATTR_CREATE allows creation and
+		     replacement.
+
+     fsetxattr() is identical to setxattr(), except that it sets an extended
+     attribute on an open file referenced by file descriptor fd.
+
+RETURN VALUES
+     On success, 0 is returned.  On failure, -1 is returned and the global
+     variable errno is set as follows.
+
+ERRORS
+     [EEXIST]		options contains XATTR_CREATE and the named attribute
+			already exists.
+
+     [ENOATTR]		options is set to XATTR_REPLACE and the named
+			attribute does not exist.
+
+     [ENOTSUP]		The file system does not support extended attributes
+			or has them disabled.
+
+     [EROFS]		The file system is mounted read-only.
+
+     [ERANGE]		The data size of the attribute is out of range (some
+			attributes have size restrictions).
+
+     [EPERM]		Attributes cannot be associated with this type of
+			object.  For example, attributes are not allowed for
+			resource forks.
+
+     [EINVAL]		name or options is invalid.  name must be valid UTF-8
+			and options must make sense.
+
+     [ENOTDIR]		A component of path is not a directory.
+
+     [ENAMETOOLONG]	name exceeded XATTR_MAXNAMELEN UTF-8 bytes, or a com-
+			ponent of path exceeded NAME_MAX characters, or the
+			entire path exceeded PATH_MAX characters.
+
+     [EACCES]		Search permission is denied for a component of path or
+			permission to set the attribute is denied.
+
+     [ELOOP]		Too many symbolic links were encountered resolving
+			path.
+
+     [EFAULT]		path or name points to an invalid address.
+
+     [EIO]		An I/O error occurred while reading from or writing to
+			the file system.
+
+     [E2BIG]		The data size of the extended attribute is too large.
+
+     [ENOSPC]		Not enough space left on the file system.
+
+SEE ALSO
+     getxattr(2), listxattr(2), removexattr(2)
+
+HISTORY
+     setxattr() and fsetxattr() first appeared in Mac OS X 10.4.
+
+Mac OS X			 Oct 19, 2004			      Mac OS X

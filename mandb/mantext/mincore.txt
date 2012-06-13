@@ -1,0 +1,42 @@
+MINCORE(2)		    BSD System Calls Manual		    MINCORE(2)
+
+NAME
+     mincore -- determine residency of memory pages
+
+SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/mman.h>
+
+     int
+     mincore(caddr_t addr, size_t len, char *vec);
+
+DESCRIPTION
+     The mincore() system call allows a process to obtain information about
+     whether pages are core resident.  The current core residency of the pages
+     is returned in the character array vec.  For each entry in the character
+     array vec, the following bit values may be set depending upon the state
+     of the page:
+
+	   MINCORE_INCORE	    0x1     /* Page is incore */
+	   MINCORE_REFERENCED	    0x2     /* Page has been referenced by us */
+	   MINCORE_MODIFIED	    0x4     /* Page has been modified by us */
+	   MINCORE_REFERENCED_OTHER 0x8     /* Page has been referenced */
+	   MINCORE_MODIFIED_OTHER  0x10     /* Page has been modified */
+
+RETURN VALUES
+     Upon successful completion, a value of 0 is returned.  Otherwise, a value
+     of -1 is returned and errno is set to indicate the error.
+
+ERRORS
+     [EINVAL]		addr is not a valid address for user mode.
+
+     [EFAULT]		an error occurred trying to copy to the output charac-
+			ter array vec.
+
+SEE ALSO
+     madvise(2), minherit(2), mlock(2), mprotect(2), msync(2), munmap(2)
+
+HISTORY
+     The mincore() function first appeared in 4.4BSD.
+
+BSD				 June 9, 1993				   BSD

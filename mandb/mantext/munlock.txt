@@ -1,0 +1,107 @@
+MLOCK(2)		    BSD System Calls Manual		      MLOCK(2)
+
+NAME
+     mlock, munlock -- lock (unlock) physical pages in memory
+
+SYNOPSIS
+     #include <sys/mman.h>
+
+     int
+     mlock(const void *addr, size_t len);
+
+     int
+     munlock(const void *addr, size_t len);
+
+DESCRIPTION
+     The mlock system call locks a set of physical pages into memory.  The
+     pages are associated with a virtual address range that starts at addr and
+     extends for len bytes.  The munlock call unlocks pages that were previ-
+     ously locked by one or more mlock calls.  For both calls, the addr param-
+     eter should be aligned to a multiple of the page size.  If the len param-
+     eter is not a multiple of the page size, it will be rounded up to be so.
+     The entire range must be allocated.
+
+     After an mlock call, the indicated pages will cause neither a non-resi-
+     dent page nor address-translation fault until they are unlocked.  They
+     may still cause protection-violation faults or TLB-miss faults on archi-
+     tectures with software-managed TLBs.  The physical pages remain in memory
+     until all locked mappings for the pages are removed.
+
+     Multiple processes may have the same physical pages locked via their own
+     virtual address mappings.	Similarly, a single process may have pages
+     multiply-locked via different virtual mappings of the same pages or via
+     nested mlock calls on the same address range.  Unlocking is performed
+     explicitly by munlock or implicitly by a call to munmap, which deallo-
+     cates the unmapped address range.	Locked mappings are not inherited by
+     the child process after a fork(2).
+
+     Because physical memory is a potentially scarce resource, processes are
+     limited in how much memory they can lock down.  A single process can
+     mlock the minimum of a system-wide ``wired pages'' limit and the per-
+     process RLIMIT_MEMLOCK resource limit.
+
+RETURN VALUES
+     A return value of 0 indicates that the call succeeded and all pages in
+     the range have either been locked or unlocked, as requested.  A return
+     value of -1 indicates an error occurred and the locked status of all
+     pages in the range remains unchanged.  In this case, the global location
+     errno is set to indicate the error.
+
+ERRORS
+     Mlock() and munlock() will fail if:
+
+     [EINVAL]		The address given is not page-aligned or the length is
+			negative.
+
+     [ENOMEM]		Part or all of the specified address range is not
+			mapped to the process.
+
+     Mlock() will fail if:
+
+     [EAGAIN]		Locking the indicated range would exceed either the
+			system or per-process limit for locked memory.
+
+     [ENOMEM]		Some portion of the indicated address range is not
+			allocated.  There was an error faulting/mapping a
+			page.
+
+     Munlock() will fail if:
+
+     [ENOMEM]		Some portion of the indicated address range is not
+			allocated.  Some portion of the indicated address
+			range is not locked.
+
+LEGACY SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/mman.h>
+
+     The include file <sys/types.h> is necessary.
+
+     int
+     mlock(caddr_t addr, size_t len);
+
+     int
+     munlock(caddr_t addr, size_t len);
+
+     The variable type of addr has changed.
+
+SEE ALSO
+     fork(2), mincore(2), minherit(2), mmap(2), munmap(2), setrlimit(2),
+     getpagesize(3), compat(5)
+
+BUGS
+     Unlike The Sun implementation, multiple mlock calls on the same address
+     range require the corresponding number of munlock calls to actually
+     unlock the pages, i.e.  mlock nests.  This should be considered a conse-
+     quence of the implementation and not a feature.
+
+     The per-process resource limit is a limit on the amount of virtual memory
+     locked, while the system-wide limit is for the number of locked physical
+     pages.  Hence a process with two distinct locked mappings of the same
+     physical page counts as 2 pages against the per-process limit and as only
+     a single page in the system limit.
+
+HISTORY
+     The mlock() and munlock() functions first appeared in 4.4BSD.
+
+BSD				 June 2, 1993				   BSD

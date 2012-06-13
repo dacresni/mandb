@@ -1,0 +1,82 @@
+SEMGET(2)		    BSD System Calls Manual		     SEMGET(2)
+
+NAME
+     semget -- obtain a semaphore id
+
+SYNOPSIS
+     #include <sys/sem.h>
+
+     int
+     semget(key_t key, int nsems, int semflg);
+
+DESCRIPTION
+     Based on the values of key and semflg, semget() returns the identifier of
+     a newly created or previously existing set of semaphores.	The key is
+     analogous to a filename: it provides a handle that names an IPC object.
+     There are three ways to specify a key:
+
+     o	 IPC_PRIVATE may be specified, in which case a new IPC object will be
+	 created.
+
+     o	 An integer constant may be specified.	If no IPC object corresponding
+	 to key is specified and the IPC_CREAT bit is set in semflg, a new one
+	 will be created.
+
+     o	 The ftok(3) function may be used to generate a key from a pathname.
+
+     The mode of a newly created IPC object is determined by OR'ing the fol-
+     lowing constants into the semflg argument:
+
+     SEM_R	   Read access for user.
+
+     SEM_A	   Alter access for user.
+
+     (SEM_R>>3)    Read access for group.
+
+     (SEM_A>>3)    Alter access for group.
+
+     (SEM_R>>6)    Read access for other.
+
+     (SEM_A>>6)    Alter access for other.
+
+     If a new set of semaphores is being created, nsems is used to indicate
+     the number of semaphores the set should contain.  Otherwise, nsems may be
+     specified as 0.
+
+RETURN VALUES
+     The semget() system call returns the id of a semaphore set if successful;
+     otherwise, -1 is returned and errno is set to indicate the error.
+
+ERRORS
+     The semget() system call will fail if:
+
+     [EACCES]		Access permission failure.
+
+     [EEXIST]		IPC_CREAT and IPC_EXCL were specified, and a semaphore
+			set corresponding to key already exists.
+
+     [EINVAL]		The number of semaphores requested is either less than
+			1 or greater than the system imposed maximum per set.
+
+     [EINVAL]		A semaphore identifier exists for the argument key,
+			but the number of semaphores in the set associated
+			with it is less than nsems, and nsems is non-zero.
+
+     [ENOENT]		No semaphore set was found corresponding to key, and
+			IPC_CREAT was not specified.
+
+     [ENOSPC]		Insufficiently many semaphores are available.
+
+     [ENOSPC]		The kernel could not allocate a struct semid_ds.
+
+LEGACY SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/ipc.h>
+     #include <sys/sem.h>
+
+     The include files <sys/types.h> and <sys/ipc.h> are necessary.
+
+SEE ALSO
+     semctl(2), semop(2), ftok(3), compat(5)
+
+BSD			      September 12, 1995			   BSD

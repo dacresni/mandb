@@ -1,0 +1,61 @@
+BRK(2)			    BSD System Calls Manual			BRK(2)
+
+NAME
+     brk, sbrk -- change data segment size
+
+SYNOPSIS
+     #include <unistd.h>
+
+     void *
+     brk(const void *addr);
+
+     void *
+     sbrk(int incr);
+
+DESCRIPTION
+     The brk and sbrk functions are historical curiosities left over from ear-
+     lier days before the advent of virtual memory management.	The brk()
+     function sets the break or lowest address of a process's data segment
+     (uninitialized data) to addr (immediately above bss).  Data addressing is
+     restricted between addr and the lowest stack pointer to the stack seg-
+     ment.  Memory is allocated by brk in page size pieces; if addr is not
+     evenly divisible by the system page size, it is increased to the next
+     page boundary.
+
+     The current value of the program break is reliably returned by
+     ``sbrk(0)'' (see also end(3)).  The getrlimit(2) system call may be used
+     to determine the maximum permissible size of the data segment; it will
+     not be possible to set the break beyond the rlim_max value returned from
+     a call to getrlimit, e.g.	``qetext + rlp->rlim_max.'' (see end(3) for
+     the definition of etext).
+
+RETURN VALUES
+     Brk returns a pointer to the new end of memory if successful; otherwise
+     -1 with errno set to indicate why the allocation failed.  The sbrk func-
+     tion returns a pointer to the base of the new storage if successful; oth-
+     erwise -1 with errno set to indicate why the allocation failed.
+
+ERRORS
+     Sbrk will fail and no additional memory will be allocated if one of the
+     following are true:
+
+     [ENOMEM]		The limit, as set by setrlimit(2), was exceeded.
+
+     [ENOMEM]		The maximum possible size of a data segment (compiled
+			into the system) was exceeded.
+
+     [ENOMEM]		Insufficient space existed in the swap area to support
+			the expansion.
+
+SEE ALSO
+     execve(2), getrlimit(2), malloc(3), mmap(2), end(3)
+
+BUGS
+     Setting the break may fail due to a temporary lack of swap space.	It is
+     not possible to distinguish this from a failure caused by exceeding the
+     maximum size of the data segment without consulting getrlimit.
+
+HISTORY
+     A brk() function call appeared in Version 7 AT&T UNIX.
+
+4th Berkeley Distribution      December 11, 1993     4th Berkeley Distribution

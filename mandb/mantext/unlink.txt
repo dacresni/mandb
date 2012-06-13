@@ -1,0 +1,74 @@
+UNLINK(2)		    BSD System Calls Manual		     UNLINK(2)
+
+NAME
+     unlink -- remove directory entry
+
+SYNOPSIS
+     #include <unistd.h>
+
+     int
+     unlink(const char *path);
+
+DESCRIPTION
+     The unlink() function removes the link named by path from its directory
+     and decrements the link count of the file which was referenced by the
+     link.  If that decrement reduces the link count of the file to zero, and
+     no process has the file open, then all resources associated with the file
+     are reclaimed.  If one or more process have the file open when the last
+     link is removed, the link is removed, but the removal of the file is
+     delayed until all references to it have been closed.
+
+RETURN VALUES
+     Upon successful completion, a value of 0 is returned.  Otherwise, a value
+     of -1 is returned and errno is set to indicate the error.
+
+ERRORS
+     The unlink() system call will fail if:
+
+     [EACCES]		Search permission is denied for a component of the
+			path prefix.
+
+     [EACCES]		Write permission is denied on the directory containing
+			the link to be removed.
+
+     [EBUSY]		The entry to be unlinked is the mount point for a
+			mounted file system.
+
+     [EBUSY]		The file named by the path argument cannot be unlinked
+			because it is being used by the system or by another
+			process.
+
+     [EFAULT]		Path points outside the process's allocated address
+			space.
+
+     [EIO]		An I/O error occurs while deleting the directory entry
+			or deallocating the inode.
+
+     [ELOOP]		Too many symbolic links are encountered in translating
+			the pathname.  This is taken to be indicative of a
+			looping symbolic link.
+
+     [ENAMETOOLONG]	A component of a pathname exceeds {NAME_MAX} charac-
+			ters, or an entire path name exceeds {PATH_MAX} char-
+			acters (possibly as a result of expanding a symlink).
+
+     [ENOENT]		The named file does not exist.
+
+     [ENOTDIR]		A component of the path prefix is not a directory.
+
+     [EPERM]		The named file is a directory and the effective user
+			ID of the process is not the super-user.
+
+     [EPERM]		The directory containing the file is marked sticky,
+			and neither the containing directory nor the file to
+			be removed are owned by the effective user ID.
+
+     [EROFS]		The named file resides on a read-only file system.
+
+SEE ALSO
+     close(2), link(2), rmdir(2), symlink(7)
+
+HISTORY
+     An unlink() function call appeared in Version 6 AT&T UNIX.
+
+4th Berkeley Distribution	 June 4, 1993	     4th Berkeley Distribution

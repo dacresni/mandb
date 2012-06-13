@@ -1,0 +1,126 @@
+GETRLIMIT(2)		    BSD System Calls Manual		  GETRLIMIT(2)
+
+NAME
+     getrlimit, setrlimit -- control maximum system resource consumption
+
+SYNOPSIS
+     #include <sys/resource.h>
+
+     int
+     getrlimit(int resource, struct rlimit *rlp);
+
+     int
+     setrlimit(int resource, const struct rlimit *rlp);
+
+DESCRIPTION
+     Limits on the consumption of system resources by the current process and
+     each process it creates may be obtained with the getrlimit() call, and
+     set with the setrlimit() call.
+
+     The resource parameter is one of the following:
+
+     RLIMIT_CORE     The largest size (in bytes) core file that may be cre-
+		     ated.
+
+     RLIMIT_CPU      The maximum amount of cpu time (in seconds) to be used by
+		     each process.
+
+     RLIMIT_DATA     The maximum size (in bytes) of the data segment for a
+		     process; this defines how far a program may extend its
+		     break with the sbrk(2) system call.
+
+     RLIMIT_FSIZE    The largest size (in bytes) file that may be created.
+
+     RLIMIT_MEMLOCK  The maximum size (in bytes) which a process may lock into
+		     memory using the mlock(2) function.
+
+     RLIMIT_NOFILE   The maximum number of open files for this process.
+
+     RLIMIT_NPROC    The maximum number of simultaneous processes for this
+		     user id.
+
+     RLIMIT_RSS      The maximum size (in bytes) to which a process's resident
+		     set size may grow.  This imposes a limit on the amount of
+		     physical memory to be given to a process; if memory is
+		     tight, the system will prefer to take memory from pro-
+		     cesses that are exceeding their declared resident set
+		     size.
+
+     RLIMIT_STACK    The maximum size (in bytes) of the stack segment for a
+		     process; this defines how far a program's stack segment
+		     may be extended.  Stack extension is performed automati-
+		     cally by the system.
+
+     A resource limit is specified as a soft limit and a hard limit.  When a
+     soft limit is exceeded a process may receive a signal (for example, if
+     the cpu time or file size is exceeded), but it will be allowed to con-
+     tinue execution until it reaches the hard limit (or modifies its resource
+     limit).  The rlimit structure is used to specify the hard and soft limits
+     on a resource,
+
+	   struct rlimit {
+		   rlim_t  rlim_cur;	   /* current (soft) limit */
+		   rlim_t  rlim_max;	   /* hard limit */
+	   };
+
+     Only the super-user may raise the maximum limits.	Other users may only
+     alter rlim_cur within the range from 0 to rlim_max or (irreversibly)
+     lower rlim_max.
+
+     Because this information is stored in the per-process information, this
+     system call must be executed directly by the shell if it is to affect all
+     future processes created by the shell; limit is thus a built-in command
+     to csh(1) and ulimit is the sh(1) equivalent.
+
+     The system refuses to extend the data or stack space when the limits
+     would be exceeded in the normal way: a break call fails if the data space
+     limit is reached.	When the stack limit is reached, the process receives
+     a segmentation fault (SIGSEGV); if this signal is not caught by a handler
+     using the signal stack, this signal will kill the process.
+
+     A file I/O operation that would create a file larger that the process'
+     soft limit will cause the write to fail and a signal SIGXFSZ to be gener-
+     ated; this normally terminates the process, but may be caught.  When the
+     soft cpu time limit is exceeded, a signal SIGXCPU is sent to the offend-
+     ing process.
+
+RETURN VALUES
+     A 0 return value indicates that the call succeeded, changing or returning
+     the resource limit.   A return value of -1 indicates that an error
+     occurred, and an error code is stored in the global location errno.
+
+ERRORS
+     The getrlimit() and setrlimit() system calls will fail if:
+
+     [EFAULT]		The address specified for rlp is invalid.
+
+     [EINVAL]		resource is invalid.
+
+     The setrlimit() call will fail if:
+
+     [EINVAL]		The specified limit is invalid (e.g., RLIM_INFINITY or
+			lower than rlim_cur).
+
+     [EPERM]		The limit specified would have raised the maximum
+			limit value and the caller is not the super-user.
+
+LEGACY SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/time.h>
+     #include <sys/resource.h>
+
+     The include files <sys/types.h> and <sys/time.h> are necessary.
+
+COMPATIBILITY
+     setrlimit() now returns with errno set to EINVAL in places that histori-
+     cally succeeded.  It no longer accepts "rlim_cur = RLIM_INFINITY" for
+     RLIM_NOFILE.  Use "rlim_cur = min(OPEN_MAX, rlim_max)".
+
+SEE ALSO
+     csh(1), sh(1), quota(2), sigaction(2), sigaltstack(2), sysctl(3),
+     compat(5)
+
+HISTORY
+     The getrlimit() function call appeared in 4.2BSD.
+
+4th Berkeley Distribution	 June 4, 1993	     4th Berkeley Distribution

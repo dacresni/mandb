@@ -1,0 +1,45 @@
+SHM_UNLINK(2)		    BSD System Calls Manual		 SHM_UNLINK(2)
+
+NAME
+     shm_unlink -- remove shared memory object
+
+SYNOPSIS
+     #include <sys/mman.h>
+
+     int
+     shm_unlink(const char *name);
+
+DESCRIPTION
+     The shm_unlink() function disassociates the shared memory object speci-
+     fied by name from that name.  The resources associated with the shared
+     memory object remain intact until the last file descriptor reference is
+     removed, e.g., by close(2) or munmap(2), at which point the resources are
+     reclaimed (if no references exist at the time of the call to
+     shm_unlink(), the resources are reclaimed immediately).  The name can
+     only be reused when it is bound to a new shared memory object with a call
+     to shm_open(2) with the O_CREAT flag.
+
+RETURN VALUES
+     Upon successful completion, a value of 0 is returned.  Otherwise, a value
+     of -1 is returned and errno is set to indicate the error, and the named
+     shared memory object will remain unchanged.
+
+ERRORS
+     The shm_unlink() succeeds unless:
+
+     [EACCES]		Permission is denied to be remove the object.
+
+     [ENAMETOOLONG]	name exceeded the name size limit.  This is currently
+			PSHMNAMLEN characters (defined in <sys/posix_shm.h>),
+			but this may change in the future.
+
+     [ENOENT]		The named object does not exist.
+
+SEE ALSO
+     close(2), mmap(2), munmap(2), shm_open(2), shmat(2), shmctl(2)
+
+HISTORY
+     shm_open() is specified in the POSIX Realtime Extension
+     (1003.1b-1993/1003.1i-1995).
+
+Darwin				August 31, 2006 			Darwin

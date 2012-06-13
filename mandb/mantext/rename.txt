@@ -1,0 +1,130 @@
+RENAME(2)		    BSD System Calls Manual		     RENAME(2)
+
+NAME
+     rename -- change the name of a file
+
+SYNOPSIS
+     #include <stdio.h>
+
+     int
+     rename(const char *old, const char *new);
+
+DESCRIPTION
+     The rename() system call causes the link named old to be renamed as new.
+     If new exists, it is first removed.  Both old and new must be of the same
+     type (that is, both must be either directories or non-directories) and
+     must reside on the same file system.
+
+     The rename() system call guarantees that an instance of new will always
+     exist, even if the system should crash in the middle of the operation.
+
+     If the final component of old is a symbolic link, the symbolic link is
+     renamed, not the file or directory to which it points.
+
+CAVEATS
+     The system can deadlock if a loop is present in the file system graph.
+     This loop takes the form of an entry in directory `a', say `a/foo', being
+     a hard link to directory `b', and an entry in directory `b', say `b/bar',
+     being a hard link to directory `a'.  When such a loop exists and two sep-
+     arate processes attempt to perform `rename a/foo b/bar' and `rename b/bar
+     a/foo', respectively, the system may deadlock attempting to lock both
+     directories for modification.
+
+     Whether or not hard links to directories are supported is specific to the
+     underlying filesystem implementation.
+
+     It is recommended that any hard links to directories in an underlying
+     filesystem should be replaced by symbolic links by the system administra-
+     tor to avoid the possibility of deadlocks.
+
+     Moving or renaming a file or directory into a directory with inheritable
+     ACLs does not result in ACLs being set on the file or directory. Use
+     acl(3) in conjunction with rename() to set ACLs on the file or directory.
+
+RETURN VALUES
+     A 0 value is returned if the operation succeeds, otherwise rename()
+     returns -1 and the global variable errno indicates the reason for the
+     failure.
+
+ERRORS
+     The rename() system call will fail and neither of the argument files will
+     be affected if:
+
+     [EACCES]		A component of either path prefix denies search per-
+			mission.
+
+     [EACCES]		The requested operation requires writing in a direc-
+			tory (e.g., new, new/.., or old/..) whose modes disal-
+			low this.
+
+     [EDQUOT]		The directory in which the entry for the new name is
+			being placed cannot be extended because the user's
+			quota of disk blocks on the file system containing the
+			directory has been exhausted.
+
+     [EFAULT]		Path points outside the process's allocated address
+			space.
+
+     [EINVAL]		Old is a parent directory of new, or an attempt is
+			made to rename `.' or `..'.
+
+     [EIO]		An I/O error occurs while making or updating a direc-
+			tory entry.
+
+     [EISDIR]		new is a directory, but old is not a directory.
+
+     [ELOOP]		Too many symbolic links are encountered in translating
+			either pathname.  This is taken to be indicative of a
+			looping symbolic link.
+
+     [ENAMETOOLONG]	A component of a pathname exceeds {NAME_MAX} charac-
+			ters, or an entire path name exceeds {PATH_MAX} char-
+			acters.
+
+     [ENOENT]		A component of the old path does not exist, or a path
+			prefix of new does not exist.
+
+     [ENOSPC]		The directory in which the entry for the new name is
+			being placed cannot be extended because there is no
+			space left on the file system containing the direc-
+			tory.
+
+     [ENOTDIR]		A component of either path prefix is not a directory.
+
+     [ENOTDIR]		old is a directory, but new is not a directory.
+
+     [ENOTEMPTY]	New is a directory and is not empty.
+
+     [EPERM]		The directory containing old is marked sticky, and
+			neither the containing directory nor old are owned by
+			the effective user ID.
+
+     [EPERM]		The new file exists, the directory containing new is
+			marked sticky, and neither the containing directory
+			nor new are owned by the effective user ID.
+
+     [EROFS]		The requested link requires writing in a directory on
+			a read-only file system.
+
+     [EXDEV]		The link named by new and the file named by old are on
+			different logical devices (file systems).  Note that
+			this error code will not be returned if the implemen-
+			tation permits cross-device links.
+
+CONFORMANCE
+     The restriction on renaming a directory whose permissions disallow writ-
+     ing is based on the fact that UFS directories contain a ".." entry.  If
+     renaming a directory would move it to another parent directory, this
+     entry needs to be changed.
+
+     This restriction has been generalized to disallow renaming of any write-
+     disabled directory, even when this would not require a change to the ".."
+     entry.  For consistency, HFS+ directories emulate this behavior.
+
+SEE ALSO
+     open(2), symlink(7)
+
+STANDARDS
+     The rename() function conforms to IEEE Std 1003.1-1988 (``POSIX.1'').
+
+4.2 Berkeley Distribution     September 18, 2008     4.2 Berkeley Distribution

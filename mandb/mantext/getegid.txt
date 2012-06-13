@@ -1,0 +1,42 @@
+GETGID(2)		    BSD System Calls Manual		     GETGID(2)
+
+NAME
+     getegid, getgid -- get group process identification
+
+SYNOPSIS
+     #include <unistd.h>
+
+     gid_t
+     getegid(void);
+
+     gid_t
+     getgid(void);
+
+DESCRIPTION
+     The getgid() function returns the real group ID of the calling process,
+     getegid() returns the effective group ID of the calling process.
+
+     The real group ID is specified at login time.
+
+     The real group ID is the group of the user who invoked the program.  As
+     the effective group ID gives the process additional permissions during
+     the execution of ``set-group-ID'' mode processes, getgid() is used to
+     determine the real-user-id of the calling process.
+
+ERRORS
+     The getgid() and getegid() functions are always successful; no return
+     value is reserved to indicate an error.
+
+LEGACY SYNOPSIS
+     #include <sys/types.h>
+     #include <unistd.h>
+
+     The include file <sys/types.h> is necessary.
+
+SEE ALSO
+     getuid(2), setregid(2), setgid(3)
+
+STANDARDS
+     Getgid() and getegid() conform to IEEE Std 1003.1-1988 (``POSIX.1'').
+
+4.2 Berkeley Distribution	 June 4, 1993	     4.2 Berkeley Distribution

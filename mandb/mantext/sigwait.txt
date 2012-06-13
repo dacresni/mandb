@@ -1,0 +1,43 @@
+SIGWAIT(2)		    BSD System Calls Manual		    SIGWAIT(2)
+
+NAME
+     sigwait -- select a set of signals
+
+SYNOPSIS
+     #include <signal.h>
+
+     int
+     sigwait(const sigset_t *restrict set, int *restrict sig);
+
+DESCRIPTION
+     The sigwait() function selects a set of signals, specified by set.  If
+     none of the selected signals are pending, sigwait() waits until one or
+     more of the selected signals has been generated.  Then sigwait() atomi-
+     cally clears one of the selected signals from the set of pending signals
+     for the process and sets the location pointed to by sig to the signal
+     number that was cleared.
+
+     The signals specified by set should be blocked, but not ignored, at the
+     time of the call to sigwait().
+
+     Processes which call sigwait() on ignored signals will wait indefinitely.
+     Ignored signals are dropped immediately by the system, before delivery to
+     a waiting process.
+
+RETURN VALUES
+     If successful, sigwait() returns 0 and sets the location pointed to by
+     sig to the cleared signal number.	Otherwise, an error number is
+     returned.
+
+ERRORS
+     sigwait() will fail if:
+
+     [EINVAL]		set specifies one or more invalid signal numbers.
+
+SEE ALSO
+     pthread_sigmask(2), sigaction(2), sigpending(2), sigsuspend(2), pause(3)
+
+STANDARDS
+     sigwait() conforms to ISO/IEC 9945-1:1996 (``POSIX.1'')
+
+BSD				April 27, 2000				   BSD

@@ -1,0 +1,52 @@
+EXIT(2) 		    BSD System Calls Manual		       EXIT(2)
+
+NAME
+     _exit -- terminate the calling process
+
+SYNOPSIS
+     #include <unistd.h>
+
+     void
+     _exit(int status);
+
+DESCRIPTION
+     The _exit() function terminates a process, with the following conse-
+     quences:
+
+     o	 All of the descriptors that were open in the calling process are
+	 closed.  This may entail delays; for example, waiting for output to
+	 drain.  A process in this state may not be killed, as it is already
+	 dying.
+
+     o	 If the parent process of the calling process has an outstanding wait
+	 call or catches the SIGCHLD signal, it is notified of the calling
+	 process's termination; the status is set as defined by wait(2).
+
+     o	 The parent process-ID of all of the calling process's existing child
+	 processes are set to 1; the initialization process (see the DEFINI-
+	 TIONS section of intro(2)) inherits each of these processes.
+
+     o	 If the termination of the process causes any process group to become
+	 orphaned (usually because the parents of all members of the group
+	 have now exited; see ``orphaned process group'' in intro(2)), and if
+	 any member of the orphaned group is stopped, the SIGHUP signal and
+	 the SIGCONT signal are sent to all members of the newly-orphaned
+	 process group.
+
+     o	 If the process is a controlling process (see intro(2)), the SIGHUP
+	 signal is sent to the foreground process group of the controlling
+	 terminal.  All current access to the controlling terminal is revoked.
+
+     Most C programs call the library routine exit(3), which flushes buffers,
+     closes streams, unlinks temporary files, etc., before calling _exit().
+
+RETURN VALUE
+     _exit() can never return.
+
+SEE ALSO
+     fork(2), sigaction(2), wait(2), exit(3)
+
+STANDARDS
+     The _exit function is defined by IEEE Std 1003.1-1988 (``POSIX.1'').
+
+4th Berkeley Distribution	 June 4, 1993	     4th Berkeley Distribution

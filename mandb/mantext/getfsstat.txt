@@ -1,0 +1,131 @@
+GETFSSTAT(2)		    BSD System Calls Manual		  GETFSSTAT(2)
+
+NAME
+     getfsstat -- get list of all mounted file systems
+
+SYNOPSIS
+     #include <sys/param.h>
+     #include <sys/ucred.h>
+     #include <sys/mount.h>
+
+     int
+     getfsstat(struct statfs *buf, int bufsize, int flags);
+
+TRANSITIIONAL SYNOPSIS (NOW DEPRECATED)
+     int
+     getfsstat64(struct statfs64 *buf, int bufsize, int flags);
+
+DESCRIPTION
+     The getfsstat() function returns information about all mounted file sys-
+     tems.  The buf argument is a pointer to an array of statfs structures.
+
+     As of Mac OS X 10.6, the default size of the ino_t type is 64 bits (the
+     macro _DARWIN_FEATURE_64_BIT_INODE will be defined).  While there is no
+     ino_t type used in the statfs structure, the changes to getfsstat() are
+     grouped together with the 64-bit inode changes.  The string fields in the
+     statfs structure are larger and the variant symbol _getfsstat$INODE64
+     will be automatically used.  The statfs structure is defined as:
+
+     typedef struct { int32_t val[2]; } fsid_t;
+
+     #define MFSTYPENAMELEN  16 /* length of fs type name including null */
+     #define MAXPATHLEN      1024
+     #define MNAMELEN	     MAXPATHLEN
+
+     struct statfs { /* when _DARWIN_FEATURE_64_BIT_INODE is defined */
+	 uint32_t    f_bsize;	     /* fundamental file system block size */
+	 int32_t     f_iosize;	     /* optimal transfer block size */
+	 uint64_t    f_blocks;	     /* total data blocks in file system */
+	 uint64_t    f_bfree;	     /* free blocks in fs */
+	 uint64_t    f_bavail;	     /* free blocks avail to non-superuser */
+	 uint64_t    f_files;	     /* total file nodes in file system */
+	 uint64_t    f_ffree;	     /* free file nodes in fs */
+	 fsid_t      f_fsid;	     /* file system id */
+	 uid_t	     f_owner;	     /* user that mounted the filesystem */
+	 uint32_t    f_type;	     /* type of filesystem */
+	 uint32_t    f_flags;	     /* copy of mount exported flags */
+	 uint32_t    f_fssubtype;    /* fs sub-type (flavor) */
+	 char	     f_fstypename[MFSTYPENAMELEN];   /* fs type name */
+	 char	     f_mntonname[MAXPATHLEN];	     /* directory on which mounted */
+	 char	     f_mntfromname[MAXPATHLEN];      /* mounted filesystem */
+	 uint32_t    f_reserved[8];  /* For future use */
+     };
+
+     (In 10.5, 64-bit ino_t, larger statfs structure and variant symbol were
+     available if the macro _DARWIN_USE_64_BIT_INODE is defined before any
+     header files are included; this macro is optional in 10.6.)
+
+     If the macro _DARWIN_NO_64_BIT_INODE is defined before any header files
+     are included, or if the deployment target is less than 10.6, the legacy
+     statfs structure will be in effect.  The ino_t type will be 32 bits (the
+     _DARWIN_FEATURE_64_BIT_INODE macro will not be defined), the strings in
+     the statfs structure will be their smaller legacy size (and long mount
+     paths may no longer fit) and the undecorated symbol _getfsstat will be
+     used.  This legacy statfs structure is defined as:
+
+     #define MFSNAMELEN      15 /* length of fs type name, not inc. nul */
+     #define MNAMELEN	     90 /* length of buffer for returned name */
+
+     struct statfs { /* when _DARWIN_FEATURE_64_BIT_INODE is NOT defined */
+	 short	 f_otype;    /* type of file system (reserved: zero) */
+	 short	 f_oflags;   /* copy of mount flags (reserved: zero) */
+	 long	 f_bsize;    /* fundamental file system block size */
+	 long	 f_iosize;   /* optimal transfer block size */
+	 long	 f_blocks;   /* total data blocks in file system */
+	 long	 f_bfree;    /* free blocks in fs */
+	 long	 f_bavail;   /* free blocks avail to non-superuser */
+	 long	 f_files;    /* total file nodes in file system */
+	 long	 f_ffree;    /* free file nodes in fs */
+	 fsid_t  f_fsid;     /* file system id */
+	 uid_t	 f_owner;    /* user that mounted the file system */
+	 short	 f_reserved1;	     /* reserved for future use */
+	 short	 f_type;     /* type of file system (reserved) */
+	 long	 f_flags;    /* copy of mount flags (reserved) */
+	 long	 f_reserved2[2];     /* reserved for future use */
+	 char	 f_fstypename[MFSNAMELEN]; /* fs type name */
+	 char	 f_mntonname[MNAMELEN];    /* directory on which mounted */
+	 char	 f_mntfromname[MNAMELEN];  /* mounted file system */
+	 char	 f_reserved3;	     /* reserved for future use */
+	 long	 f_reserved4[4];     /* reserved for future use */
+     };
+
+     Fields that are undefined for a particular file system are set to -1.
+     The buffer is filled with an array of statfs structures, one for each
+     mounted file system up to the size specified by bufsize.
+
+     If buf is given as NULL, getfsstat() returns just the number of mounted
+     file systems.
+
+     If flags is set to MNT_NOWAIT, getfsstat() will directly return the
+     information retained in the kernel to avoid delays caused by waiting for
+     updated information from a file system that is perhaps temporarily unable
+     to respond.  Some of the information returned may be out of date, how-
+     ever; if flags is set to MNT_WAIT or MNT_DWAIT instead, getfsstat() will
+     request updated information from each mounted filesystem before return-
+     ing.
+
+RETURN VALUES
+     Upon successful completion, the number of statfs structures is returned.
+     Otherwise, -1 is returned and the global variable errno is set to indi-
+     cate the error.
+
+ERRORS
+     Getfsstat() fails if one or more of the following are true:
+
+     [EFAULT]		The buf argument points to an invalid address.
+
+     [EIO]		An I/O error occurred while reading from or writing to
+			the file system.
+
+TRANSITIONAL DESCRIPTION (NOW DEPRECATED)
+     The getfsstat64() routine is equivalent to the default getfstat() (when
+     _DARWIN_FEATURE_64_BIT_INODE is defined), so there is no longer any rea-
+     son to use it (it will be removed in the future).
+
+SEE ALSO
+     statfs(2), fstab(5), mount(8)
+
+HISTORY
+     The getfsstat() function first appeared in 4.4BSD.
+
+BSD				 Oct 28, 2008				   BSD

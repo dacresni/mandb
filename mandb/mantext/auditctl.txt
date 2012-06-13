@@ -1,0 +1,49 @@
+AUDITCTL(2)		    BSD System Calls Manual		   AUDITCTL(2)
+
+NAME
+     auditctl -- configure system audit parameters
+
+SYNOPSIS
+     #include <bsm/audit.h>
+
+     int
+     auditctl(const char *path);
+
+DESCRIPTION
+     The auditctl() system call directs the kernel to open a new audit trail
+     log file.	It requires an appropriate privilege.  The auditctl() system
+     call opens new files, but auditon(2) is used to disable the audit log.
+
+RETURN VALUES
+     Upon successful completion, the value 0 is returned; otherwise the
+     value -1 is returned and the global variable errno is set to indicate the
+     error.
+
+ERRORS
+     The auditctl() system call will fail if:
+
+     [EINVAL]		The path is invalid.
+
+     [EPERM]		The process does not have sufficient permission to
+			complete the operation.
+
+SEE ALSO
+     auditon(2), libbsm(3), auditd(8)
+
+HISTORY
+     The OpenBSM implementation was created by McAfee Research, the security
+     division of McAfee Inc., under contract to Apple Computer Inc. in 2004.
+     It was subsequently adopted by the TrustedBSD Project as the foundation
+     for the OpenBSM distribution.
+
+AUTHORS
+     This software was created by McAfee Research, the security research divi-
+     sion of McAfee, Inc., under contract to Apple Computer Inc.  Additional
+     authors include Wayne Salamon, Robert Watson, and SPARTA Inc.
+
+     The Basic Security Module (BSM) interface to audit records and audit
+     event stream format were defined by Sun Microsystems.
+
+     This manual page was written by Robert Watson <rwatson@FreeBSD.org>.
+
+BSD				April 19, 2005				   BSD

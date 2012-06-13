@@ -1,0 +1,69 @@
+PROFIL(2)		    BSD System Calls Manual		     PROFIL(2)
+
+NAME
+     profil -- control process profiling
+
+LIBRARY
+     Standard C Library (libc, -lc)
+
+SYNOPSIS
+     #include <unistd.h>
+
+     int
+     profil(char *samples, size_t size, u_long offset, u_int scale);
+
+DESCRIPTION
+     -- This function is now deprecated. It will always return EINVAL. --
+
+     The intended replacements are the user-level developer tools, like CHUD
+     and dtrace.
+
+     ------
+
+     The profil() function enables or disables program counter profiling of
+     the current process.  If profiling is enabled, then at every clock tick,
+     the kernel updates an appropriate count in the samples buffer.
+
+     The buffer samples contains size bytes and is divided into a series of
+     16-bit bins.  Each bin counts the number of times the program counter was
+     in a particular address range in the process when a clock tick occurred
+     while profiling was enabled.  For a given program counter address, the
+     number of the corresponding bin is given by the relation:
+
+	   [(pc - offset) / 2] * scale / 65536
+
+     The offset parameter is the lowest address at which the kernel takes pro-
+     gram counter samples.  The scale parameter ranges from 1 to 65536 and can
+     be used to change the span of the bins.  A scale of 65536 maps each bin
+     to 2 bytes of address range; a scale of 32768 gives 4 bytes, 16384 gives
+     8 bytes and so on.  Intermediate values provide approximate intermediate
+     ranges.  A scale value of 0 disables profiling.
+
+RETURN VALUES
+     If the scale value is nonzero and the buffer samples contains an illegal
+     address, profil() returns -1, profiling is terminated and errno is set
+     appropriately.  Otherwise profil() returns 0.
+
+FILES
+     /usr/lib/gcrt0.o  profiling C run-time startup file
+     gmon.out	       conventional name for profiling output file
+
+ERRORS
+     The following error may be reported:
+
+     [EFAULT]		The buffer samples contains an invalid address.
+
+SEE ALSO
+     gprof(1)
+
+HISTORY
+     The profil() function appeared in Version 7 AT&T UNIX.
+
+BUGS
+     This routine should be named profile().
+
+     The samples argument should really be a vector of type unsigned short.
+
+     The format of the gmon.out file is undocumented.
+
+BSD			      September 26, 2008			   BSD

@@ -1,0 +1,67 @@
+RMDIR(2)		    BSD System Calls Manual		      RMDIR(2)
+
+NAME
+     rmdir -- remove a directory file
+
+SYNOPSIS
+     #include <unistd.h>
+
+     int
+     rmdir(const char *path);
+
+DESCRIPTION
+     Rmdir() removes a directory file whose name is given by path.  The direc-
+     tory must not have any entries other than `.' and `..'.
+
+RETURN VALUES
+     A 0 is returned if the remove succeeds; otherwise a -1 is returned and an
+     error code is stored in the global location errno.
+
+ERRORS
+     The named file is removed unless:
+
+     [EACCES]		Search permission is denied for a component of the
+			path prefix.
+
+     [EACCES]		Write permission is denied on the directory containing
+			the link to be removed.
+
+     [EBUSY]		The directory to be removed is the mount point for a
+			mounted file system.
+
+     [EFAULT]		Path points outside the process's allocated address
+			space.
+
+     [EIO]		An I/O error occurs while deleting the directory entry
+			or deallocating the inode.
+
+     [ELOOP]		Too many symbolic links are encountered in translating
+			the pathname.  This is taken to be indicative of a
+			looping symbolic link.
+
+     [ENAMETOOLONG]	A component of a pathname (possibly expanded by a sym-
+			bolic link) exceeds {NAME_MAX} characters, or an
+			entire path name exceeded {PATH_MAX} characters.
+
+     [ENOENT]		The named directory does not exist.
+
+     [ENOTDIR]		A component of the path is not a directory.
+
+     [ENOTEMPTY]	The named directory contains files other than `.' and
+			`..' in it.
+
+     [EPERM]		The directory containing the directory to be removed
+			is marked sticky, and neither the containing directory
+			nor the directory to be removed are owned by the
+			effective user ID.
+
+     [EROFS]		The directory entry to be removed resides on a read-
+			only file system.
+
+SEE ALSO
+     mkdir(2), unlink(2)
+
+HISTORY
+     The rmdir() function call appeared in 4.2BSD.
+
+4.2 Berkeley Distribution	 June 4, 1993	     4.2 Berkeley Distribution

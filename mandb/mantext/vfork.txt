@@ -1,0 +1,58 @@
+VFORK(2)		    BSD System Calls Manual		      VFORK(2)
+
+NAME
+     vfork -- spawn new process in a virtual memory efficient way
+
+SYNOPSIS
+     #include <unistd.h>
+
+     pid_t
+     vfork(void);
+
+DESCRIPTION
+     Vfork() can be used to create new processes without fully copying the
+     address space of the old process, which is horrendously inefficient in a
+     paged environment.  It is useful when the purpose of fork(2) would have
+     been to create a new system context for an execve.  Vfork() differs from
+     fork in that the child borrows the parent's memory and thread of control
+     until a call to execve(2) or an exit (either by a call to exit(2) or
+     abnormally.)  The parent process is suspended while the child is using
+     its resources.
+
+     Vfork() returns 0 in the child's context and (later) the pid of the child
+     in the parent's context.
+
+     Vfork() can normally be used just like fork.  It does not work, however,
+     to return while running in the childs context from the procedure that
+     called vfork() since the eventual return from vfork() would then return
+     to a no longer existent stack frame.  Be careful, also, to call _exit
+     rather than exit if you can't execve, since exit will flush and close
+     standard I/O channels, and thereby mess up the parent processes standard
+     I/O data structures.  (Even with fork it is wrong to call exit since
+     buffered data would then be flushed twice.)
+
+SEE ALSO
+     execve(2), fork(2), sigaction(2), wait(2)
+
+ERRORS
+     The vfork() system call will fail for any of the reasons described in the
+     fork man page.  In addition, it will fail if:
+
+     [EINVAL]		A system call other than _exit() or execve() (or libc
+			functions that make no system calls other than those)
+			is called following calling a vfork() call.
+
+BUGS
+     This system call will be eliminated when proper system sharing mechanisms
+     are implemented.  Users should not depend on the memory sharing semantics
+     of vfork as it will, in that case, be made synonymous to fork.
+
+     To avoid a possible deadlock situation, processes that are children in
+     the middle of a vfork() are never sent SIGTTOU or SIGTTIN signals;
+     rather, output or ioctl(2) calls are allowed and input attempts result in
+     an end-of-file indication.
+
+HISTORY
+     The vfork() function call appeared in 3.0BSD.
+
+4th Berkeley Distribution	 June 4, 1993	     4th Berkeley Distribution

@@ -1,0 +1,78 @@
+SETUID(2)		    BSD System Calls Manual		     SETUID(2)
+
+NAME
+     setegid, seteuid, setgid, setuid -- set user and group ID
+
+SYNOPSIS
+     #include <unistd.h>
+
+     int
+     setegid(gid_t egid);
+
+     int
+     seteuid(uid_t euid);
+
+     int
+     setgid(gid_t gid);
+
+     int
+     setuid(uid_t uid);
+
+DESCRIPTION
+     The setuid() function sets the real and effective user IDs and the saved
+     set-user-ID of the current process to the specified value.  The setuid()
+     function is permitted if the effective user ID is that of the super user,
+     or if the specified user ID is the same as the effective user ID.	If
+     not, but the specified user ID is the same as the real user ID, setuid()
+     will set the effective user ID to the real user ID.
+
+     The setgid() function sets the real and effective group IDs and the saved
+     set-group-ID of the current process to the specified value.  The setgid()
+     function is permitted if the effective user ID is that of the super user,
+     or if the specified group ID is the same as the effective group ID.  If
+     not, but the specified group ID is the same as the real group ID,
+     setgid() will set the effective group ID to the real group ID.
+
+     The seteuid() function (setegid()) sets the effective user ID (group ID)
+     of the current process.  The effective user ID may be set to the value of
+     the real user ID or the saved set-user-ID (see intro(2) and execve(2));
+     in this way, the effective user ID of a set-user-ID executable may be
+     toggled by switching to the real user ID, then re-enabled by reverting to
+     the set-user-ID value.  Similarly, the effective group ID may be set to
+     the value of the real group ID or the saved set-user-ID.
+
+RETURN VALUES
+     Upon success, these functions return 0; otherwise -1 is returned.
+
+     If the user is not the super user, or the uid specified is not the real,
+     effective ID, or saved ID, these functions return -1.
+
+ERRORS
+     The setegid(), seteuid(), setgid(), and setuid() system calls will fail
+     if:
+
+     [EINVAL]		The value of the {group,user} ID argument is invalid
+			and is not supported by the implementation.
+
+     [EPERM]		The process does not have appropriate privileges and
+			the ID argument does not match the real ID or the
+			saved set-{group,user}-ID.
+
+LEGACY SYNOPSIS
+     #include <sys/types.h>
+     #include <unistd.h>
+
+     The include file <sys/types.h> is necessary for all functions.
+
+SEE ALSO
+     getgid(2), getuid(2), compat(5)
+
+STANDARDS
+     The setuid() and setgid() functions are compliant with the ISO/IEC
+     9945-1:1990 (``POSIX.1'') specification with _POSIX_SAVED_IDS defined,
+     with the extensions allowed in section B.4.2.2.  The seteuid() and
+     setegid() functions are extensions based on the POSIX concept of
+     _POSIX_SAVED_IDS, and have been proposed for a future revision of the
+     standard.
+
+4.2 Berkeley Distribution	 June 4, 1993	     4.2 Berkeley Distribution

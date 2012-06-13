@@ -1,0 +1,44 @@
+GETLCID(2)		    BSD System Calls Manual		    GETLCID(2)
+
+NAME
+     getlcid -- get login context
+
+SYNOPSIS
+     #include <sys/lctx.h>
+
+     pid_t
+     getlcid(pid_t pid);
+
+DESCRIPTION
+     The login context of the process identified by pid is returned by
+     getlcid().  If pid is zero, getlcid() returns the login context of the
+     current process.
+
+     Login contexts are used for tracking processes that originated from a
+     users login session.  A login context is inherited via fork() or by
+     explicit creation using the setlcid() call.
+
+RETURN VALUES
+     If successful, getlcid() returns a non-negative integer, the Login Con-
+     text ID; otherwise the value -1 is returned and the global variable errno
+     is set to indicate the error.
+
+ERRORS
+     The getlcid() function will fail if:
+
+     [EPERM]		Operation not permitted.
+
+     [ESRCH]		No such process.
+
+     [ENOATTR]		Attribute not found.
+
+SEE ALSO
+     setlcid(2)
+
+HISTORY
+     The getlcid manual page first appeared in FreeBSD 6.0.
+
+AUTHORS
+     This manual page was written by Matthew N. Dodd <mdodd@FreeBSD.org>.
+
+BSD				  May 5, 2005				   BSD

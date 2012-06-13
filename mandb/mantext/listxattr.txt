@@ -1,0 +1,93 @@
+LISTXATTR(2)		    BSD System Calls Manual		  LISTXATTR(2)
+
+NAME
+     listxattr, flistxattr -- list extended attribute names
+
+SYNOPSIS
+     #include <sys/xattr.h>
+
+     ssize_t
+     listxattr(const char *path, char *namebuf, size_t size, int options);
+
+     ssize_t
+     flistxattr(int fd, char *namebuf, size_t size, int options);
+
+DESCRIPTION
+     Extended attributes extend the basic attributes associated with files and
+     directories in the file system.  They are stored as name:data pairs asso-
+     ciated with file system objects (files, directories, symlinks, etc).
+
+     listxattr() retrieves a list of names of extended attributes associated
+     with the given path in the file system.
+
+     namebuf is a data buffer of size bytes for the names of the extended
+     attributes associated with path.  The extended attribute names are simple
+     NULL-terminated UTF-8 strings and are returned in arbitrary order.  No
+     extra padding is provided between names in the buffer.  The list will
+     only include names of extended attributes to which the calling process
+     has access.  The function returns the size of the list of names.
+
+     options controls how the attribute list is generated:
+
+     XATTR_NOFOLLOW  do not follow symbolic links.  listxattr() normally lists
+		     attributes of the target of path if it is a symbolic
+		     link.  With this option, listxattr() will list attributes
+		     of the link itself.
+
+     XATTR_SHOWCOMPRESSION
+		     listxattr() and flistxattr() will list HFS Plus Compres-
+		     sion extended attribute(s) (if present) for the file
+		     referred to by path or fd.
+
+     If namebuf is set to NULL, the function returns the size of the list of
+     extended attribute names.	This facility can be used to determine the
+     size of a buffer sufficiently large to hold the names of the attributes
+     currently associated with path.
+
+     flistxattr() is identical to listxattr(), except that it returns the list
+     of extended attribute names associated with the open file referenced by
+     file descriptor fd.
+
+RETURN VALUES
+     On success, the size of the extended attribute name list is returned.  If
+     no accessible extended attributes are associated with the given path or
+     fd, the function returns zero.  On failure, -1 is returned and the global
+     variable errno is set as follows.
+
+ERRORS
+     [ENOTSUP]		The file system does not support extended attributes
+			or has the feature disabled.
+
+     [ERANGE]		namebuf (as indicated by size) is too small to hold
+			the list of names.
+
+     [EPERM]		path or fd refer to a file system object that does not
+			support extended attributes.  For example, resource
+			forks don't support extended attributes.
+
+     [ENOTDIR]		A component of path 's prefix is not a directory.
+
+     [ENAMETOOLONG]	name exceeds XATTR_MAXNAMELEN UTF-8 bytes, or a compo-
+			nent of path exceeds NAME_MAX characters, or the
+			entire path exceeds PATH_MAX characters.
+
+     [EACCES]		Search permission is denied for a component of path or
+			permission is denied to read the list of attributes
+			from this file.
+
+     [ELOOP]		Too many symbolic links were encountered resolving
+			path.
+
+     [EFAULT]		path points to an invalid address.
+
+     [EIO]		An I/O error occurred.
+
+     [EINVAL]		options does not make sense.
+
+SEE ALSO
+     getxattr(2), removexattr(2), setxattr(2)
+
+HISTORY
+     listxattr() and flistxattr() first appeared in Mac OS X 10.4.
+
+Mac OS X			 Oct 19, 2004			      Mac OS X

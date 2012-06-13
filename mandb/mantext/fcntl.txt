@@ -1,0 +1,351 @@
+FCNTL(2)		    BSD System Calls Manual		      FCNTL(2)
+
+NAME
+     fcntl -- file control
+
+SYNOPSIS
+     #include <fcntl.h>
+
+     int
+     fcntl(int fildes, int cmd, ...);
+
+DESCRIPTION
+     Fcntl() provides for control over descriptors.  The argument fildes is a
+     descriptor to be operated on by cmd as follows:
+
+     F_DUPFD		Return a new descriptor as follows:
+
+			    o	Lowest numbered available descriptor greater
+				than or equal to arg.
+			    o	Same object references as the original
+				descriptor.
+			    o	New descriptor shares the same file offset if
+				the object was a file.
+			    o	Same access mode (read, write or read/write).
+			    o	Same file status flags (i.e., both file
+				descriptors share the same file status flags).
+			    o	The close-on-exec flag associated with the new
+				file descriptor is set to remain open across
+				execv(2) system calls.
+
+     F_GETFD		Get the close-on-exec flag associated with the file
+			descriptor fildes.  If the low-order bit of the
+			returned value is 0, the file will remain open across
+			exec(), otherwise the file will be closed upon execu-
+			tion of exec() (arg is ignored).
+
+     F_SETFD		Set the close-on-exec flag associated with fildes to
+			the low order bit of arg (0 or 1 as above).
+
+     F_GETFL		Get descriptor status flags, as described below (arg
+			is ignored).
+
+     F_SETFL		Set descriptor status flags to arg.
+
+     F_GETOWN		Get the process ID or process group currently receiv-
+			ing SIGIO and SIGURG signals; process groups are
+			returned as negative values (arg is ignored).
+
+     F_SETOWN		Set the process or process group to receive SIGIO and
+			SIGURG signals; process groups are specified by sup-
+			plying arg as negative, otherwise arg is interpreted
+			as a process ID.
+
+     F_GETPATH		Get the path of the file descriptor Fildes.  The argu-
+			ment must be a buffer of size MAXPATHLEN or greater.
+
+     F_PREALLOCATE	Preallocate file storage space. Note: upon success,
+			the space that is allocated can be the same size or
+			larger than the space requested.
+
+     F_SETSIZE		Truncate a file without zeroing space.	The calling
+			process must have root privileges.
+
+     F_RDADVISE 	Issue an advisory read async with no copy to user.
+
+     F_RDAHEAD		Turn read ahead off/on.  A zero value in arg disables
+			read ahead.  A non-zero value in arg turns read ahead
+			on.
+
+     F_READBOOTSTRAP	Read bootstrap from disk.
+
+     F_WRITEBOOTSTRAP	Write bootstrap on disk.  The calling process must
+			have root privileges.
+
+     F_NOCACHE		Turns data caching off/on. A non-zero value in arg
+			turns data caching off.  A value of zero in arg turns
+			data caching on.
+
+     F_LOG2PHYS 	Get disk device information.  Currently this only
+			includes the disk device address that corresponds to
+			the current file offset.
+
+     F_FULLFSYNC	Does the same thing as fsync(2) then asks the drive to
+			flush all buffered data to the permanent storage
+			device (arg is ignored).  This is currently imple-
+			mented on HFS, MS-DOS (FAT), and Universal Disk Format
+			(UDF) file systems.  The operation may take quite a
+			while to complete.  Certain FireWire drives have also
+			been known to ignore the request to flush their
+			buffered data.
+
+     The flags for the F_GETFL and F_SETFL commands are as follows:
+
+	   O_NONBLOCK	Non-blocking I/O; if no data is available to a read
+			call, or if a write operation would block, the read or
+			write call returns -1 with the error EAGAIN.
+
+	   O_APPEND	Force each write to append at the end of file; corre-
+			sponds to the O_APPEND flag of open(2).
+
+	   O_ASYNC	Enable the SIGIO signal to be sent to the process
+			group when I/O is possible, e.g., upon availability of
+			data to be read.
+
+     Several commands are available for doing advisory file locking; they all
+     operate on the following structure:
+
+	     struct flock {
+		 off_t	     l_start;	 /* starting offset */
+		 off_t	     l_len;	 /* len = 0 means until end of file */
+		 pid_t	     l_pid;	 /* lock owner */
+		 short	     l_type;	 /* lock type: read/write, etc. */
+		 short	     l_whence;	 /* type of l_start */
+	     };
+
+     The commands available for advisory record locking are as follows:
+
+     F_GETLK	Get the first lock that blocks the lock description pointed to
+		by the third argument, arg, taken as a pointer to a struct
+		flock (see above).  The information retrieved overwrites the
+		information passed to fcntl in the flock structure.  If no
+		lock is found that would prevent this lock from being created,
+		the structure is left unchanged by this function call except
+		for the lock type which is set to F_UNLCK.
+
+     F_SETLK	Set or clear a file segment lock according to the lock
+		description pointed to by the third argument, arg, taken as a
+		pointer to a struct flock (see above).	F_SETLK is used to
+		establish shared (or read) locks (F_RDLCK) or exclusive (or
+		write) locks, (F_WRLCK), as well as remove either type of lock
+		(F_UNLCK).  If a shared or exclusive lock cannot be set, fcntl
+		returns immediately with EAGAIN.
+
+     F_SETLKW	This command is the same as F_SETLK except that if a shared or
+		exclusive lock is blocked by other locks, the process waits
+		until the request can be satisfied.  If a signal that is to be
+		caught is received while fcntl is waiting for a region, the
+		fcntl will be interrupted if the signal handler has not speci-
+		fied the SA_RESTART (see sigaction(2)).
+
+     When a shared lock has been set on a segment of a file, other processes
+     can set shared locks on that segment or a portion of it.  A shared lock
+     prevents any other process from setting an exclusive lock on any portion
+     of the protected area.  A request for a shared lock fails if the file
+     descriptor was not opened with read access.
+
+     An exclusive lock prevents any other process from setting a shared lock
+     or an exclusive lock on any portion of the protected area.  A request for
+     an exclusive lock fails if the file was not opened with write access.
+
+     The value of l_whence is SEEK_SET, SEEK_CUR, or SEEK_END to indicate that
+     the relative offset, l_start bytes, will be measured from the start of
+     the file, current position, or end of the file, respectively.  The value
+     of l_len is the number of consecutive bytes to be locked.	If l_len is
+     negative, the result is undefined.  The l_pid field is only used with
+     F_GETLK to return the process ID of the process holding a blocking lock.
+     After a successful F_GETLK request, the value of l_whence is SEEK_SET.
+
+     Locks may start and extend beyond the current end of a file, but may not
+     start or extend before the beginning of the file.	A lock is set to
+     extend to the largest possible value of the file offset for that file if
+     l_len is set to zero. If l_whence and l_start point to the beginning of
+     the file, and l_len is zero, the entire file is locked.  If an applica-
+     tion wishes only to do entire file locking, the flock(2) system call is
+     much more efficient.
+
+     There is at most one type of lock set for each byte in the file.  Before
+     a successful return from an F_SETLK or an F_SETLKW request when the call-
+     ing process has previously existing locks on bytes in the region speci-
+     fied by the request, the previous lock type for each byte in the speci-
+     fied region is replaced by the new lock type.  As specified above under
+     the descriptions of shared locks and exclusive locks, an F_SETLK or an
+     F_SETLKW request fails or blocks respectively when another process has
+     existing locks on bytes in the specified region and the type of any of
+     those locks conflicts with the type specified in the request.
+
+     This interface follows the completely stupid semantics of System V and
+     IEEE Std 1003.1-1988 (``POSIX.1'') that require that all locks associated
+     with a file for a given process are removed when any file descriptor for
+     that file is closed by that process.  This semantic means that applica-
+     tions must be aware of any files that a subroutine library may access.
+     For example if an application for updating the password file locks the
+     password file database while making the update, and then calls
+     getpwname(3) to retrieve a record, the lock will be lost because
+     getpwname(3) opens, reads, and closes the password database.  The data-
+     base close will release all locks that the process has associated with
+     the database, even if the library routine never requested a lock on the
+     database.	Another minor semantic problem with this interface is that
+     locks are not inherited by a child process created using the fork(2)
+     function.	The flock(2) interface has much more rational last close
+     semantics and allows locks to be inherited by child processes.  Flock(2)
+     is recommended for applications that want to ensure the integrity of
+     their locks when using library routines or wish to pass locks to their
+     children.	Note that flock(2) and fcntl(2) locks may be safely used con-
+     currently.
+
+     All locks associated with a file for a given process are removed when the
+     process terminates.
+
+     A potential for deadlock occurs if a process controlling a locked region
+     is put to sleep by attempting to lock the locked region of another
+     process.  This implementation detects that sleeping until a locked region
+     is unlocked would cause a deadlock and fails with an EDEADLK error.
+
+     The F_PREALLOCATE command operates on the following structure:
+
+	     typedef struct fstore {
+		 u_int32_t fst_flags;	   /* IN: flags word */
+		 int	   fst_posmode;    /* IN: indicates offset field */
+		 off_t	   fst_offset;	   /* IN: start of the region */
+		 off_t	   fst_length;	   /* IN: size of the region */
+		 off_t	   fst_bytesalloc; /* OUT: number of bytes allocated */
+	     } fstore_t;
+
+     The flags (fst_flags) for the F_PREALLOCATE command are as follows:
+
+	   F_ALLOCATECONTIG   Allocate contiguous space.
+
+	   F_ALLOCATEALL      Allocate all requested space or no space at all.
+
+     The position modes (fst_posmode) for the F_PREALLOCATE command indicate
+     how to use the offset field.  The modes are as follows:
+
+	   F_PEOFPOSMODE   Allocate from the physical end of file.
+
+	   F_VOLPOSMODE    Allocate from the volume offset.
+
+     The F_RDADVISE command operates on the following structure which holds
+     information passed from the user to the system:
+
+	     struct radvisory {
+		off_t	ra_offset;  /* offset into the file */
+		int	ra_count;   /* size of the read     */
+	     };
+
+     The F_READBOOTSTRAP and F_WRITEBOOTSTRAP commands operate on the follow-
+     ing structure.
+
+	     typedef struct fbootstraptransfer {
+		 off_t fbt_offset;	 /* IN: offset to start read/write */
+		 size_t fbt_length;	 /* IN: number of bytes to transfer */
+		 void *fbt_buffer;	 /* IN: buffer to be read/written */
+	     } fbootstraptransfer_t;
+
+     The F_LOG2PHYS command operates on the following structure.
+
+	     struct log2phys {
+		 u_int32_t   l2p_flags; 	     /* unused so far */
+		 off_t	     l2p_contigbytes;	     /* unused so far */
+		 off_t	     l2p_devoffset;	 /* bytes into device */
+	     };
+
+RETURN VALUES
+     Upon successful completion, the value returned depends on cmd as follows:
+
+	   F_DUPFD    A new file descriptor.
+
+	   F_GETFD    Value of flag (only the low-order bit is defined).
+
+	   F_GETFL    Value of flags.
+
+	   F_GETOWN   Value of file descriptor owner.
+
+	   other      Value other than -1.
+
+     Otherwise, a value of -1 is returned and errno is set to indicate the
+     error.
+
+ERRORS
+     The fcntl() system call will fail if:
+
+     [EAGAIN]		The argument cmd is F_SETLK, the type of lock (l_type)
+			is a shared lock (F_RDLCK) or exclusive lock
+			(F_WRLCK), and the segment of a file to be locked is
+			already exclusive-locked by another process; or the
+			type is an exclusive lock and some portion of the seg-
+			ment of a file to be locked is already shared-locked
+			or exclusive-locked by another process.
+
+     [EACCESS]		The argument cmd is either F_SETSIZE or
+			F_WRITEBOOTSTRAP and the calling process does not have
+			root privileges.
+
+     [EBADF]		Fildes is not a valid open file descriptor.
+
+			The argument cmd is F_SETLK or F_SETLKW, the type of
+			lock (l_type) is a shared lock (F_RDLCK), and fildes
+			is not a valid file descriptor open for reading.
+
+			The argument cmd is F_SETLK or F_SETLKW, the type of
+			lock (l_type) is an exclusive lock (F_WRLCK), and
+			fildes is not a valid file descriptor open for writ-
+			ing.
+
+			The argument cmd is F_PREALLOCATE and the calling
+			process does not have file write permission.
+
+			The argument cmd is F_LOG2PHYS and fildes is not a
+			valid file descriptor open for reading.
+
+     [EDEADLK]		The argument cmd is F_SETLKW, and a deadlock condition
+			was detected.
+
+     [EINTR]		The argument cmd is F_SETLKW, and the function was
+			interrupted by a signal.
+
+     [EINVAL]		Cmd is F_DUPFD and arg is negative or greater than the
+			maximum allowable number (see getdtablesize(2)).
+
+			The argument cmd is F_GETLK, F_SETLK, or F_SETLKW and
+			the data to which arg points is not valid, or fildes
+			refers to a file that does not support locking.
+
+			The argument cmd is F_PREALLOCATE and the fst_posmode
+			is not a valid mode, or when F_PEOFPOSMODE is set and
+			fst_offset is a non-zero value, or when F_VOLPOSMODE
+			is set and fst_offset is a negative or zero value.
+
+			The argument cmd is either F_READBOOTSTRAP or
+			F_WRITEBOOTSTRAP and the operation was attempted on a
+			non-HFS disk type.
+
+     [EMFILE]		Cmd is F_DUPFD and the maximum allowed number of file
+			descriptors are currently open.
+
+     [EMFILE]		The argument cmd is F_DUPED and the maximum number of
+			file descriptors permitted for the process are already
+			in use, or no file descriptors greater than or equal
+			to arg are available.
+
+     [ENOLCK]		The argument cmd is F_SETLK or F_SETLKW, and satisfy-
+			ing the lock or unlock request would result in the
+			number of locked regions in the system exceeding a
+			system-imposed limit.
+
+     [EOVERFLOW]	A return value would overflow its representation.  For
+			example, cmd is F_GETLK, F_SETLK, or F_SETLKW and the
+			smallest (or, if l_len is non-zero, the largest) off-
+			set of a byte in the requested segment will not fit in
+			an object of type off_t.
+
+     [ESRCH]		Cmd is F_SETOWN and the process ID given as argument
+			is not in use.
+
+SEE ALSO
+     close(2), execve(2), flock(2), getdtablesize(2), open(2), sigaction(3)
+
+HISTORY
+     The fcntl() function call appeared in 4.2BSD.
+
+4.2 Berkeley Distribution	October 2, 2008      4.2 Berkeley Distribution

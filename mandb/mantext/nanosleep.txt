@@ -1,0 +1,54 @@
+NANOSLEEP(2)		    BSD System Calls Manual		  NANOSLEEP(2)
+
+NAME
+     nanosleep -- suspend thread execution for an interval measured in
+     nanoseconds
+
+LIBRARY
+     Standard C Library (libc, -lc)
+
+SYNOPSIS
+     #include <time.h>
+
+     int
+     nanosleep(const struct timespec *rqtp, struct timespec *rmtp);
+
+DESCRIPTION
+     The nanosleep() function causes the calling thread to sleep for the
+     amount of time specified in rqtp (the actual time slept may be longer,
+     due to system latencies and possible limitations in the timer resolution
+     of the hardware).	An unmasked signal will cause nanosleep() to terminate
+     the sleep early, regardless of the SA_RESTART value on the interrupting
+     signal.
+
+RETURN VALUES
+     If nanosleep() returns because the requested time has elapsed, the value
+     returned will be zero.
+
+     If nanosleep() returns due to the delivery of a signal, the value
+     returned will be the -1, and the global variable errno will be set to
+     indicate the interruption.  If rmtp is non-NULL, the timespec structure
+     it references is updated to contain the unslept amount (the request time
+     minus the time actually slept).
+
+ERRORS
+     The nanosleep() call fails if:
+
+     [EFAULT]		Either rqtp or rmtp points to memory that is not a
+			valid part of the process address space.
+
+     [EINTR]		nanosleep() was interrupted by the delivery of a sig-
+			nal.
+
+     [EINVAL]		rqtp specified a nanosecond value less than zero or
+			greater than or equal to 1000 million.
+
+     [ENOSYS]		nanosleep() is not supported by this implementation.
+
+SEE ALSO
+     sigsuspend(2), sleep(3)
+
+STANDARDS
+     The nanosleep() function conforms to IEEE Std 1003.1b-1993 (``POSIX.1'').
+
+BSD				April 17, 1997				   BSD

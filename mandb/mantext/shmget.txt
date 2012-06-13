@@ -1,0 +1,82 @@
+SHMGET(2)		    BSD System Calls Manual		     SHMGET(2)
+
+NAME
+     shmget -- get shared memory area identifier
+
+SYNOPSIS
+     #include <sys/shm.h>
+
+     int
+     shmget(key_t key, size_t size, int shmflg);
+
+DESCRIPTION
+     shmget() returns the shared memory identifier associated with the key
+     key.
+
+     A shared memory segment is created if either key is equal to IPC_PRIVATE,
+     or key does not have a shared memory segment identifier associated with
+     it, and the IPC_CREAT bit is set in shmflg.
+
+     If a new shared memory segment is created, the data structure associated
+     with it (the shmid_ds structure, see shmctl(2)) is initialized as fol-
+     lows:
+
+     o	 shm_perm.cuid and shm_perm.uid are set to the effective uid of the
+	 calling process.
+
+     o	 shm_perm.gid and shm_perm.cgid are set to the effective gid of the
+	 calling process.
+
+     o	 shm_perm.mode is set to the lower 9 bits of shmflg.
+
+     o	 shm_lpid, shm_nattch, shm_atime, and shm_dtime are set to 0
+
+     o	 shm_ctime is set to the current time.
+
+     o	 shm_segsz is set to the value of size.
+
+     o	 The ftok(3) function may be used to generate a key from a pathname.
+
+RETURN VALUES
+     Upon successful completion a positive shared memory segment identifier is
+     returned.	Otherwise, -1 is returned and the global variable errno is set
+     to indicate the error.
+
+ERRORS
+     The shmget() system call will fail if:
+
+     [EACCES]		A shared memory segment is already associated with key
+			and the caller has no permission to access it.
+
+     [EEXIST]		Both IPC_CREAT and IPC_EXCL are set in shmflg, and a
+			shared memory segment is already associated with key.
+
+     [EINVAL]		No shared memory segment is to be created, and a
+			shared memory segment exists for key, but the size of
+			the segment associated with it is less than size,
+			which is non-zero.
+
+     [ENOENT]		IPC_CREAT was not set in shmflg and no shared memory
+			segment associated with key was found.
+
+     [ENOMEM]		There is not enough memory left to created a shared
+			memory segment of the requested size.
+
+     [ENOSPC]		A new shared memory identifier could not be created
+			because the system limit for the number of shared mem-
+			ory identifiers has been reached.
+
+LEGACY SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/ipc.h>
+     #include <sys/shm.h>
+
+     int
+     shmget(key_t key, int size, int shmflg);
+
+     All of these include files are necessary.	The type of size has changed.
+
+SEE ALSO
+     ftok(3), shmat(2), shmctl(2), shmdt(2), compat(5)
+
+BSD				August 17, 1995 			   BSD

@@ -1,0 +1,189 @@
+RECV(2) 		    BSD System Calls Manual		       RECV(2)
+
+NAME
+     recv, recvfrom, recvmsg -- receive a message from a socket
+
+LIBRARY
+     Standard C Library (libc, -lc)
+
+SYNOPSIS
+     #include <sys/socket.h>
+
+     ssize_t
+     recv(int socket, void *buffer, size_t length, int flags);
+
+     ssize_t
+     recvfrom(int socket, void *restrict buffer, size_t length, int flags,
+	 struct sockaddr *restrict address, socklen_t *restrict address_len);
+
+     ssize_t
+     recvmsg(int socket, struct msghdr *message, int flags);
+
+DESCRIPTION
+     The recvfrom() and recvmsg() system calls are used to receive messages
+     from a socket, and may be used to receive data on a socket whether or not
+     it is connection-oriented.
+
+     If address is not a null pointer and the socket is not connection-ori-
+     ented, the source address of the message is filled in.  The address_len
+     argument is a value-result argument, initialized to the size of the
+     buffer associated with address, and modified on return to indicate the
+     actual size of the address stored there.
+
+     The recv() function is normally used only on a connected socket (see
+     connect(2)) and is identical to recvfrom() with a null pointer passed as
+     its address argument.  As it is redundant, it may not be supported in
+     future releases.
+
+     All three routines return the length of the message on successful comple-
+     tion.  If a message is too long to fit in the supplied buffer, excess
+     bytes may be discarded depending on the type of socket the message is
+     received from (see socket(2)).
+
+     If no messages are available at the socket, the receive call waits for a
+     message to arrive, unless the socket is nonblocking (see fcntl(2)) in
+     which case the value -1 is returned and the external variable errno set
+     to EAGAIN.  The receive calls normally return any data available, up to
+     the requested amount, rather than waiting for receipt of the full amount
+     requested; this behavior is affected by the socket-level options
+     SO_RCVLOWAT and SO_RCVTIMEO described in getsockopt(2).
+
+     The select(2) system call may be used to determine when more data arrive.
+
+     If no messages are available to be received and the peer has performed an
+     orderly shutdown, the value 0 is returned.
+
+     The flags argument to a recv() function is formed by or'ing one or more
+     of the values:
+
+	   MSG_OOB	  process out-of-band data
+	   MSG_PEEK	  peek at incoming message
+	   MSG_WAITALL	  wait for full request or error
+
+     The MSG_OOB flag requests receipt of out-of-band data that would not be
+     received in the normal data stream.  Some protocols place expedited data
+     at the head of the normal data queue, and thus this flag cannot be used
+     with such protocols.  The MSG_PEEK flag causes the receive operation to
+     return data from the beginning of the receive queue without removing that
+     data from the queue.  Thus, a subsequent receive call will return the
+     same data.  The MSG_WAITALL flag requests that the operation block until
+     the full request is satisfied.  However, the call may still return less
+     data than requested if a signal is caught, an error or disconnect occurs,
+     or the next data to be received is of a different type than that
+     returned.
+
+     The recvmsg() system call uses a msghdr structure to minimize the number
+     of directly supplied arguments.  This structure has the following form,
+     as defined in <sys/socket.h>:
+
+     struct msghdr {
+	     void	     *msg_name;      /* optional address */
+	     socklen_t	     msg_namelen;    /* size of address */
+	     struct	     iovec *msg_iov; /* scatter/gather array */
+	     int	     msg_iovlen;     /* # elements in msg_iov */
+	     void	     *msg_control;   /* ancillary data, see below */
+	     socklen_t	     msg_controllen; /* ancillary data buffer len */
+	     int	     msg_flags;      /* flags on received message */
+     };
+
+     Here msg_name and msg_namelen specify the destination address if the
+     socket is unconnected; msg_name may be given as a null pointer if no
+     names are desired or required.
+
+     The msg_iov and msg_iovlen arguments describe scatter gather locations,
+     as discussed in read(2).  msg_iovlen shall be set to the dimension of
+     this array. In each iovec structure, the iov_base field specifies a stor-
+     age area and the iov_len field gives its size in bytes. Each storage area
+     indicated by msg_iov is filled with received data in turn until all of
+     the received data is stored or all of the areas have been filled.
+
+     The msg_control argument, which has length msg_controllen, points to a
+     buffer for other protocol control related messages or other miscellaneous
+     ancillary data.  The messages are of the form:
+
+     struct cmsghdr {
+	     u_int   cmsg_len;	     /* data byte count, including hdr */
+	     int     cmsg_level;     /* originating protocol */
+	     int     cmsg_type;      /* protocol-specific type */
+     /* followed by
+	     u_char  cmsg_data[]; */
+     };
+
+     As an example, one could use this to learn of changes in the data-stream
+     in XNS/SPP, or in ISO, to obtain user-connection-request data by request-
+     ing a recvmsg() with no data buffer provided immediately after an
+     accept() system call.
+
+     Open file descriptors are now passed as ancillary data for AF_UNIX domain
+     sockets, with cmsg_level set to SOL_SOCKET and cmsg_type set to
+     SCM_RIGHTS.
+
+     The msg_flags field is set on return according to the message received.
+     MSG_EOR indicates end-of-record; the data returned completed a record
+     (generally used with sockets of type SOCK_SEQPACKET).  MSG_TRUNC indi-
+     cates that the trailing portion of a datagram was discarded because the
+     datagram was larger than the buffer supplied.  MSG_CTRUNC indicates that
+     some control data were discarded due to lack of space in the buffer for
+     ancillary data.  MSG_OOB is returned to indicate that expedited or out-
+     of-band data were received.
+
+RETURN VALUES
+     These calls return the number of bytes received, or -1 if an error
+     occurred.
+
+     For TCP sockets, the return value 0 means the peer has closed its half
+     side of the connection.
+
+ERRORS
+     The calls fail if:
+
+     [EAGAIN]		The socket is marked non-blocking, and the receive
+			operation would block, or a receive timeout had been
+			set, and the timeout expired before data were
+			received.
+
+     [EBADF]		The argument socket is an invalid descriptor.
+
+     [ECONNRESET]	The connection is closed by the peer during a receive
+			attempt on a socket.
+
+     [EFAULT]		The receive buffer pointer(s) point outside the
+			process's address space.
+
+     [EINTR]		The receive was interrupted by delivery of a signal
+			before any data were available.
+
+     [EINVAL]		MSG_OOB is set, but no out-of-band data is available.
+
+     [ENOBUFS]		An attempt to allocate a memory buffer fails.
+
+     [ENOTCONN] 	The socket is associated with a connection-oriented
+			protocol and has not been connected (see connect(2)
+			and accept(2)).
+
+     [ENOTSOCK] 	The argument socket does not refer to a socket.
+
+     [EOPNOTSUPP]	The type and/or protocol of socket do not support the
+			option(s) specified in flags.
+
+     [ETIMEDOUT]	The connection timed out.
+
+     The recvfrom() call may also fail if:
+
+     [EINVAL]		The total of the iov_len values overflows a ssize_t.
+
+     The recvmsg() call may also fail if:
+
+     [EMSGSIZE] 	The msg_iovlen member of the msghdr structure pointed
+			to by message is less than or equal to 0, or is
+			greater than IOV_MAX.
+
+     [ENOMEM]		Insufficient memory is available.
+
+SEE ALSO
+     fcntl(2), getsockopt(2), read(2), select(2), socket(2)
+
+HISTORY
+     The recv() function appeared in 4.2BSD.
+
+BSD				 May 15, 2006				   BSD

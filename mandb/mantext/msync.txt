@@ -1,0 +1,62 @@
+MSYNC(2)		    BSD System Calls Manual		      MSYNC(2)
+
+NAME
+     msync -- synchronize a mapped region
+
+LIBRARY
+     Standard C Library (libc, -lc)
+
+SYNOPSIS
+     #include <sys/mman.h>
+
+     int
+     msync(void *addr, size_t len, int flags);
+
+DESCRIPTION
+     The msync() system call writes modified whole pages back to the filesys-
+     tem and updates the file modification time.  Only those pages containing
+     addr and len-1 succeeding locations will be examined.
+
+     The flags argument may be specified as follows:
+
+     MS_ASYNC	     Return immediately
+     MS_SYNC	     Perform synchronous writes
+     MS_INVALIDATE   Invalidate all cached data
+
+     The MS_ASYNC flag is not permitted to be combined with other flags.
+
+RETURN VALUES
+     If any errors occur, -1 is returned and errno is set to indicate the
+     error.  Otherwise, a 0 value is returned.
+
+ERRORS
+     msync() will fail if:
+
+     [EBUSY]		Some of the specified addresses are locked and
+			MS_INVALIDATE is specified.
+
+     [EINVAL]		addr is not a multiple of the hardware page size.
+
+     [EINVAL]		len is too large, or less than 1.
+
+     [EINVAL]		flags is invalid (e.g., it combines MS_ASYNC with
+			another flag, which is not permitted).
+
+     [EIO]		An I/O error occurs while writing to the file system.
+
+     [ENOMEM]		The specified address range is outside of the address
+			range of the process or includes an unmapped page.
+
+LEGACY SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/mman.h>
+
+     The include file <sys/types.h> is necessary.
+
+SEE ALSO
+     madvise(2), mincore(2), mprotect(2), munmap(2), compat(5)
+
+HISTORY
+     The msync() function first appeared in 4.4BSD.
+
+BSD				 June 21, 1994				   BSD

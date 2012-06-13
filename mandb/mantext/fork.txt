@@ -1,0 +1,76 @@
+FORK(2) 		    BSD System Calls Manual		       FORK(2)
+
+NAME
+     fork -- create a new process
+
+SYNOPSIS
+     #include <unistd.h>
+
+     pid_t
+     fork(void);
+
+DESCRIPTION
+     Fork() causes creation of a new process.  The new process (child process)
+     is an exact copy of the calling process (parent process) except for the
+     following:
+
+	   o   The child process has a unique process ID.
+
+	   o   The child process has a different parent process ID (i.e., the
+	       process ID of the parent process).
+
+	   o   The child process has its own copy of the parent's descriptors.
+	       These descriptors reference the same underlying objects, so
+	       that, for instance, file pointers in file objects are shared
+	       between the child and the parent, so that an lseek(2) on a
+	       descriptor in the child process can affect a subsequent read or
+	       write by the parent.  This descriptor copying is also used by
+	       the shell to establish standard input and output for newly cre-
+	       ated processes as well as to set up pipes.
+
+	   o   The child processes resource utilizations are set to 0; see
+	       setrlimit(2).
+
+RETURN VALUES
+     Upon successful completion, fork() returns a value of 0 to the child
+     process and returns the process ID of the child process to the parent
+     process.  Otherwise, a value of -1 is returned to the parent process, no
+     child process is created, and the global variable errno is set to indi-
+     cate the error.
+
+ERRORS
+     Fork() will fail and no child process will be created if:
+
+     [EAGAIN]		The system-imposed limit on the total number of pro-
+			cesses under execution would be exceeded.  This limit
+			is configuration-dependent.
+
+     [EAGAIN]		The system-imposed limit MAXUPRC (<sys/param.h>) on
+			the total number of processes under execution by a
+			single user would be exceeded.
+
+     [ENOMEM]		There is insufficient swap space for the new process.
+
+LEGACY SYNOPSIS
+     #include <sys/types.h>
+     #include <unistd.h>
+
+     The include file <sys/types.h> is necessary.
+
+SEE ALSO
+     execve(2), sigaction(2), wait(2), compat(5)
+
+HISTORY
+     A fork() function call appeared in Version 6 AT&T UNIX.
+
+CAVEATS
+     There are limits to what you can do in the child process.	To be totally
+     safe you should restrict yourself to only executing async-signal safe
+     operations until such time as one of the exec functions is called.  All
+     APIs, including global data symbols, in any framework or library should
+     be assumed to be unsafe after a fork() unless explicitly documented to be
+     safe or async-signal safe.  If you need to use these frameworks in the
+     child process, you must exec.  In this situation it is reasonable to exec
+     yourself.
+
+4th Berkeley Distribution	 June 4, 1993	     4th Berkeley Distribution

@@ -1,0 +1,75 @@
+MUNMAP(2)		    BSD System Calls Manual		     MUNMAP(2)
+
+NAME
+     munmap -- remove a mapping
+
+SYNOPSIS
+     #include <sys/mman.h>
+
+     int
+     munmap(void *addr, size_t len);
+
+DESCRIPTION
+     The munmap() system call deletes the mappings for the specified address
+     range, causing further references to addresses within the range to gener-
+     ate invalid memory references.
+
+DIRTY PAGE HANDLING
+     How munmap() handles a dirty page, depends on what type of memory is
+     being unmapped:
+
+     [Anonymous]	If the memory is anonymous memory and if the last ref-
+			erence is going away, then the contents are discarded
+			by definition of anonymous memory.
+
+     [System V Shared]	If the memory mapping was created using System V
+			shared memory, then the contents persist until the
+			System V memory region is destroyed or the system is
+			rebooted.
+
+     [File mapping]	If the mapping maps data from a file (MAP_SHARED),
+			then the memory will eventually be written back to
+			disk if it's dirty.  This will happen automatically at
+			some point in the future (implementation dependent).
+			Note: to force the memory to be written back to the
+			disk, use msync(2).
+
+     If there are still other references to the memory when the munmap is
+     done, then nothing is done to the memory itself and it may be swapped out
+     if need be. The memory will continue to persist until the last reference
+     goes away (except for System V shared memory in which case, see above).
+
+RETURN VALUES
+     Upon successful completion, munmap returns zero.  Otherwise, a value of
+     -1 is returned and errno is set to indicate the error.
+
+ERRORS
+     Munmap() will fail if:
+
+     [EINVAL]		The addr parameter was not page aligned (i.e., a mul-
+			tiple of the page size).
+
+     [EINVAL]		The len parameter was negative or zero.
+
+     [EINVAL]		Some part of the region being unmapped is not part of
+			the currently valid address space.
+
+LEGACY SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/mman.h>
+
+     The include file <sys/types.h> is necessary.
+
+     int
+     munmap(caddr_t addr, size_t len);
+
+     The type of addr has changed.
+
+SEE ALSO
+     getpagesize(3), msync(2), munmap(2), mprotect(2), madvise(2), mincore(2),
+     compat(5)
+
+HISTORY
+     The munmap() function first appeared in 4.4BSD.
+
+BSD			       October 16, 2008 			   BSD

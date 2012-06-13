@@ -1,0 +1,37 @@
+SIGSETMASK(2)		    BSD System Calls Manual		 SIGSETMASK(2)
+
+NAME
+     sigsetmask -- set current signal mask
+
+LIBRARY
+     Standard C Library (libc, -lc)
+
+SYNOPSIS
+     #include <signal.h>
+
+     int
+     sigsetmask(int mask);
+
+     sigmask(signum);
+
+DESCRIPTION
+     This interface is made obsolete by: sigprocmask(2).
+
+     Sigsetmask() sets the current signal mask.  Signals are blocked from
+     delivery if the corresponding bit in mask is a 1; the macro sigmask() is
+     provided to construct the mask for a given signum.
+
+     The system quietly disallows SIGKILL or SIGSTOP to be blocked.
+
+RETURN VALUES
+     The previous set of masked signals is returned.
+
+SEE ALSO
+     kill(2), sigaction(2), sigblock(2), sigprocmask(2), sigsuspend(2),
+     sigvec(2), sigsetops(3)
+
+HISTORY
+     The sigsetmask() function call appeared in 4.2BSD and has been depre-
+     cated.
+
+BSD				 June 2, 1993				   BSD

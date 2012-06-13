@@ -1,0 +1,99 @@
+GETXATTR(2)		    BSD System Calls Manual		   GETXATTR(2)
+
+NAME
+     getxattr, fgetxattr -- get an extended attribute value
+
+SYNOPSIS
+     #include <sys/xattr.h>
+
+     ssize_t
+     getxattr(const char *path, const char *name, void *value, size_t size,
+	 u_int32_t position, int options);
+
+     ssize_t
+     fgetxattr(int fd, const char *name, void *value, size_t size,
+	 u_int32_t position, int options);
+
+DESCRIPTION
+     Extended attributes extend the basic attributes of files and directories
+     in the file system.  They are stored as name:data pairs associated with
+     file system objects (files, directories, symlinks, etc).
+
+     The getxattr() function retrieves up to size bytes of data from the
+     extended attribute identified by name associated with path into the pre-
+     allocated buffer pointed to by value.  The function returns the number of
+     bytes of data retrieved.
+
+     An extended attribute's name is a simple NULL-terminated UTF-8 string.
+     position specifies an offset within the extended attribute.  In the cur-
+     rent implementation, this argument is only used with the resource fork
+     attribute.  For all other extended attributes, this parameter is reserved
+     and should be zero.
+
+     On success, value contains the data associated with name.	When value is
+     set to NULL, getxattr() returns current size of the named attribute.
+     This facility can be used to determine the size of a buffer sufficiently
+     large to hold the data currently associated with the attribute.
+
+     options specify options for retrieving extended attributes:
+
+     XATTR_NOFOLLOW  do not follow symbolic links.  getxattr() normally
+		     returns information from the target of path if it is a
+		     symbolic link.  With this option, getxattr() will return
+		     extended attribute data from the symbolic link instead.
+
+     XATTR_SHOWCOMPRESSION
+		     getxattr() and fgetxattr() will return HFS Plus Compres-
+		     sion extended attribute name (if present) for the file
+		     referred to by path or fd.
+
+     fgetxattr() is identical to getxattr(), except that it retrieves extended
+     attribute data from the open file referenced by the file descriptor fd.
+
+RETURN VALUES
+     On success, the size of the extended attribute data is returned.  On
+     failure, -1 is returned and the global variable errno is set as follows.
+
+ERRORS
+     [ENOATTR]		The extended attribute does not exist.
+
+     [ENOTSUP]		The file system does not support extended attributes
+			or has the feature disabled.
+
+     [ERANGE]		value (as indicated by size) is too small to hold the
+			extended attribute data.
+
+     [EPERM]		The named attribute is not permitted for this type of
+			object.
+
+     [EINVAL]		name is invalid or options has an unsupported bit set.
+
+     [EISDIR]		path or fd do not refer to a regular file and the
+			attribute in question is only applicable to files.
+			Similar to EPERM.
+
+     [ENOTDIR]		A component of path 's prefix is not a directory.
+
+     [ENAMETOOLONG]	The length of name exceeds XATTR_MAXNAMELEN UTF-8
+			bytes, or a component of path exceeds NAME_MAX charac-
+			ters, or the entire path exceeds PATH_MAX characters.
+
+     [EACCES]		Search permission is denied for a component of path or
+			the attribute is not allowed to be read (e.g. an ACL
+			prohibits reading the attributes of this file).
+
+     [ELOOP]		Too many symbolic links were encountered in translat-
+			ing the pathname.
+
+     [EFAULT]		path or name points to an invalid address.
+
+     [EIO]		An I/O error occurred while reading from or writing to
+			the file system.
+
+SEE ALSO
+     listxattr(2), removexattr(2), setxattr(2)
+
+HISTORY
+     getxattr() and fgetxattr() first appeared in Mac OS X 10.4.
+
+Mac OS X			 Oct 19, 2004			      Mac OS X

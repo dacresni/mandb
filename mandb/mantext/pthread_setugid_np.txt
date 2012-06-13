@@ -1,0 +1,54 @@
+PTHREAD_SETUGID_NP(2)	    BSD System Calls Manual	 PTHREAD_SETUGID_NP(2)
+
+NAME
+     pthread_setugid_np -- Set the per-thread userid and single groupid.
+
+SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/unistd.h>
+
+     int
+     pthread_setugid_np(uid_t uid, gid_t gid);
+
+DESCRIPTION
+     pthread_setugid_np() changes the current thread's effective, real, and
+     saved userid and groupid to the requested userid and groupid ( uid and
+     gid , respectively) and clears all other groupids.
+
+     uid can be the current real userid, KAUTH_UID_NONE, or, if the caller is
+     privileged, any userid.  gid can be the current real groupid or, if the
+     caller is priviledged, any single groupid.
+
+     Setting uid to KAUTH_UID_NONE means to "revert to the per process creden-
+     tial".
+
+CAVEATS
+     Temporarily restoring root privileges for a non-privileged process is
+     only possible on a per-process basis and not a per-thread basis.
+
+     pthread_setugid_np() is not intended as a privilege escalation mechanism.
+
+     Do not use pthread_setugid_np.2() in a security sensitive situation.
+
+RETURN VALUES
+     Upon successful completion, a value of 0 is returned.  Otherwise, -1 is
+     returned and the global variable errno is set to indicate the error.
+
+ERRORS
+     pthread_setugid_np() fails if one or more of the following are true:
+
+     [EPERM]		The calling process does not have the correct creden-
+			tials to set the override identity (i.e. The current
+			credentials do not imply "super-user").
+
+     [EPERM]		If uid is set to KAUTH_UID_NONE, the current thread
+			must already be assuming another identity in order to
+			revert back.
+
+     [EPERM]		The current thread cannot already be assuming another
+			identity.
+
+SEE ALSO
+     setuid(2) setgid(2) seteuid(2) setegid(2)
+
+BSD				October 1, 2008 			   BSD

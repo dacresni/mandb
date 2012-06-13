@@ -1,0 +1,82 @@
+NFSSVC(2)		    BSD System Calls Manual		     NFSSVC(2)
+
+NAME
+     nfssvc -- NFS services
+
+SYNOPSIS
+     #include <unistd.h>
+     #include <nfs/nfs.h>
+
+     int
+     nfssvc(int flags, void *argstructp);
+
+DESCRIPTION
+     The nfssvc() function is used by the NFS server daemon to pass informa-
+     tion into and out of the kernel and also to enter the kernel as a server
+     daemon.  The flags argument consists of several bits that show what
+     action is to be taken once in the kernel and the argstructp points to any
+     corresponding data that the action may require.
+
+     nfssvc() is called with the flag NFSSVC_NFSD and a NULL argstructp to
+     enter the kernel as an nfsd(8) daemon.  The NFSSVC_NFSD action normally
+     does not return until the NFS server is stopped.
+
+     The nfsd(8) server daemon calls nfssvc() with the flag NFSSVC_ADDSOCK and
+     a pointer to a
+
+     struct nfsd_args {
+	     int     sock;	     /* Socket to serve */
+	     caddr_t name;	     /* Client address for connection based sockets */
+	     int     namelen;	     /* Length of name */
+     };
+
+     to pass a server side NFS socket into the kernel for servicing by the
+     nfsd(8) daemons.
+
+     The nfsd(8) server daemon calls nfssvc() with the flag NFSSVC_EXPORT and
+     a pointer to a
+
+     struct nfs_export_args {
+	     uint32_t		     nxa_fsid;	     /* export FS ID */
+	     uint32_t		     nxa_expid;      /* export ID */
+	     char		     *nxa_fspath;    /* export FS path */
+	     char		     *nxa_exppath;   /* export sub-path */
+	     uint32_t		     nxa_flags;      /* export arg flags */
+	     uint32_t		     nxa_netcount;   /* #entries in ex_nets array */
+	     struct nfs_export_net_args *nxa_nets;   /* array of net args */
+     };
+
+     to pass exported file system information into the kernel.
+
+RETURN VALUES
+     Upon successful completion, a value of 0 is returned.  Otherwise, -1 is
+     returned the global variable errno is set to specify the error.
+
+ERRORS
+     [EPERM]		The caller is not the super-user.
+
+     [EINVAL]		The action specified by the flags argument was not
+			valid.
+
+     [EFAULT]		argstructp points to an invalid address.
+
+     [ENOMEM]		A memory allocation failure prevented the action from
+			completing.
+
+     [EEXIST]		An attempt was made to add a UDP socket via the
+			NFSSVC_ADDSOCK action, but the UDP socket has already
+			been added.
+
+SEE ALSO
+     nfsd(8)
+
+HISTORY
+     The nfssvc function first appeared in 4.4BSD.
+
+BUGS
+     The nfssvc system call is designed specifically for the NFS server dae-
+     mons and as such is specific to their requirements.  Several fields of
+     the argument structures are assumed to be valid, such that nfssvc must be
+     used with extreme care.
+
+BSD				January 9, 2007 			   BSD

@@ -1,0 +1,310 @@
+GETDIRENTRIESATTR(2)	    BSD System Calls Manual	  GETDIRENTRIESATTR(2)
+
+NAME
+     getdirentriesattr -- get file system attributes for multiple directory
+     entries
+
+SYNOPSIS
+     #include <sys/attr.h>
+     #include <unistd.h>
+
+     #if __LP64__
+
+     int
+     getdirentriesattr(int fd, struct attrlist * attrList, void * attrBuf,
+	 size_t attrBufSize, unsigned int * count, unsigned int * basep,
+	 unsigned int * newState, unsigned int options);
+
+     #else
+
+     int
+     getdirentriesattr(int fd, struct attrlist * attrList, void * attrBuf,
+	 size_t attrBufSize, unsigned long * count, unsigned long * basep,
+	 unsigned long * newState, unsigned long options);
+
+     #endif
+
+DESCRIPTION
+     The getdirentriesattr() function reads directory entries and returns
+     their attributes (that is, metadata).  You can think of it as a combina-
+     tion of getdirentries(2) and getattrlist(2).  getdirentriesattr() iter-
+     ates over the items in a directory like getdirentries(2), and returns
+     information about each directory entry like getattrlist(2).  Note: when
+     getdirentriesattr() returns information about a symbolic link, the infor-
+     mation returned is about the link itself, not the target of the link.
+
+     The function reads directory entries from the directory referenced by the
+     file descriptor fd.  Attributes of those directory entries are placed
+     into the buffer specified by attrBuf and attrBufSize.  The attrList
+     parameter determines what attributes are returned for each entry.	The
+     count parameter contains the number of directory entries requested and
+     returned.	The basep parameter returns the directory offset in a manner
+     similar to getdirentries(2).  The newState parameter allows you to check
+     whether the directory has been modified while you were reading it.  The
+     options parameter lets you control specific aspects of the function's be-
+     haviour.
+
+     The getdirentriesattr() function is only supported by certain volume for-
+     mat implementations.  For maximum compatibility, client programs should
+     use high-level APIs (such as the Carbon File Manager) to access file sys-
+     tem attributes.  These high-level APIs include logic to emulate file sys-
+     tem attributes on volumes that don't support getdirentriesattr().
+
+     The fd parameter must be a file descriptor that references a directory
+     that you have opened for reading.
+
+     The attrList parameter is a pointer to an attrlist structure.  You are
+     responsible for filling out all fields of this structure before calling
+     the function.  See the discussion of the getattrlist(2) function for a
+     detailed description of this structure.  To get an attribute you must set
+     the corresponding bit in the appropriate attrgroup_t field of the
+     attrlist structure.  You must not request volume attributes.
+
+     The attrBuf and attrBufSize parameters specify a buffer into which the
+     function places attribute values.	The attributes for any given directory
+     entry are grouped together and packed in exactly the same way as they are
+     returned from getattrlist(2).  These groups are then placed into the
+     buffer, one after another.  As each group starts with a leading u_int32_t
+     that contains the overall length of the group, you can step from one
+     group to the next by simply adding this length to your pointer.  The sam-
+     ple code (below) shows how to do this.  The initial contents of this
+     buffer are ignored.
+
+     The count parameter points to an unsigned long or unsigned int variable.
+     You should initialise this variable to be the number of directory entries
+     for which you wish to get attributes.  On return, this variable contains
+     the number of directory entries whose attributes have been placed into
+     the attribute buffer.  This may be smaller than the number that you
+     requested.
+
+     The basep parameter returns the offset of the last directory entry read,
+     in a manner identical to getdirentries(2).  You can use this value to
+     reset a directory iteration to a known position using lseek(2).  However,
+     since the variable is too small to hold an off_t, you should use lseek(2)
+     to get the directoy's current position instead of using this parameter.
+     The initial value of the variable is ignored.
+
+     The newState parameter returns a value that changes if the directory has
+     been modified.  If you're iterating through the directory by making
+     repeated calls to getdirentriesattr(), you can compare subsequent values
+     of newState to determine whether the directory has been modified (and
+     thus restart your iteration at the beginning).  The initial value of the
+     variable is ignored.
+
+     The options parameter is a bit set that controls the behaviour of
+     getdirentriesattr().  The following option bits are defined.
+
+     FSOPT_NOINMEMUPDATE  This tells getdirentriesattr() to return the direc-
+			  tory entries from disk rather than taking the extra
+			  step of looking at data structures in-memory which
+			  may contain changes that haven't been flushed to
+			  disk.
+
+			  This option allowed for specific performance opti-
+			  mizations for specific clients on older systems.  We
+			  currently recommend that clients not set this option
+			  and that file system implementations ignore it.
+
+     It is typical to ask for a combination of common, file, and directory
+     attributes and then use the value of the ATTR_CMN_OBJTYPE attribute to
+     parse the resulting attribute buffer.
+
+RETURN VALUES
+     Upon successful completion a value of 0 or 1 is returned.	The value 0
+     indicates that the routine completed successfully.  The value 1 indicates
+     that the routine completed successfully and has returned the last entry
+     in the directory.	On error, a value of -1 is returned and errno is set
+     to indicate the error.
+
+COMPATIBILITY
+     Not all volumes support getdirentriesattr().  You can test whether a vol-
+     ume supports getdirentriesattr() by using getattrlist(2) to get the vol-
+     ume capabilities attribute ATTR_VOL_CAPABILITIES, and then testing the
+     VOL_CAP_INT_READDIRATTR flag.
+
+     The getdirentriesattr() function has been undocumented for more than two
+     years.  In that time a number of volume format implementations have been
+     created without a proper specification for the behaviour of this routine.
+     You may encounter volume format implementations with slightly different
+     behaviour than what is described here.  Your program is expected to be
+     tolerant of this variant behaviour.
+
+     If you're implementing a volume format that supports getdirentriesattr(),
+     you should be careful to support the behaviour specified by this docu-
+     ment.
+
+ERRORS
+     getdirentriesattr() will fail if:
+
+     [ENOTSUP]		The volume does not support getdirentriesattr().
+
+     [EBADF]		fd is not a valid file descriptor for a directory open
+			for reading.
+
+     [EFAULT]		attrList or attrBuf points to an invalid address.
+
+     [EINVAL]		The bitmapcount field of attrList is not
+			ATTR_BIT_MAP_COUNT.
+
+     [EINVAL]		You requested an invalid attribute.
+
+     [EINVAL]		You requested volume attributes.
+
+     [EINVAL]		The options parameter contains an invalid flag.
+
+     [EIO]		An I/O error occurred while reading from or writing to
+			the file system.
+
+EXAMPLES
+     The following code lists the contents of a directory using
+     getdirentriesattr().  The listing includes the file type and creator for
+     files.
+
+     #include <assert.h>
+     #include <stdio.h>
+     #include <stddef.h>
+     #include <string.h>
+     #include <sys/attr.h>
+     #include <sys/errno.h>
+     #include <unistd.h>
+     #include <sys/vnode.h>
+     #include <stdbool.h>
+     #include <fcntl.h>
+
+     typedef struct attrlist attrlist_t;
+
+     struct FInfoAttrBuf {
+	 u_int32_t	 length;
+	 attrreference_t name;
+	 fsobj_type_t	 objType;
+	 char		 finderInfo[32];
+     };
+     typedef struct FInfoAttrBuf FInfoAttrBuf;
+
+     enum {
+	 kEntriesPerCall = 10
+     };
+
+     static int FInfoDemo(const char *dirPath)
+     {
+	 int		 err;
+	 int		 junk;
+	 int		 dirFD;
+	 attrlist_t	 attrList;
+     #ifdef __LP64__
+	 unsigned int	 index;
+	 unsigned int	 count;
+	 unsigned int	 junkBaseP;
+	 unsigned int	 oldState;
+	 unsigned int	 newState;
+     #else
+	 unsigned long	 index;
+	 unsigned long	 count;
+	 unsigned long	 junkBaseP;
+	 unsigned long	 oldState;
+	 unsigned long	 newState;
+     #endif
+	 bool		 oldStateValid;
+	 bool		 done;
+	 FInfoAttrBuf *  thisEntry;
+	 char		 attrBuf[kEntriesPerCall * (sizeof(FInfoAttrBuf) + 64)];
+
+	 // attrBuf is big enough for kEntriesPerCall entries, assuming that
+	 // the average name length is less than 64.
+
+	 memset(&attrList, 0, sizeof(attrList));
+	 attrList.bitmapcount = ATTR_BIT_MAP_COUNT;
+	 attrList.commonattr  =    ATTR_CMN_NAME
+				 | ATTR_CMN_OBJTYPE
+				 | ATTR_CMN_FNDRINFO;
+
+	 err = 0;
+	 dirFD = open(dirPath, O_RDONLY, 0);
+	 if (dirFD < 0) {
+	     err = errno;
+	 }
+	 if (err == 0) {
+	     oldStateValid = false;
+	     done = false;
+	     do {
+		 count = kEntriesPerCall;
+
+		 err = getdirentriesattr(
+		     dirFD,
+		     &attrList,
+		     &attrBuf,
+		     sizeof(attrBuf),
+		     &count,
+		     &junkBaseP,
+		     &newState,
+		     0
+		 );
+		 if (err < 0) {
+		     err = errno;
+		 } else {
+		     done = err;
+		     err = 0;
+		 }
+
+		 if (err == 0) {
+		     if (oldStateValid) {
+			 if (newState != oldState) {
+			     printf("*** Directory has changed\n");
+			     oldState = newState;
+			 }
+		     } else {
+			 oldState = newState;
+			 oldStateValid = true;
+		     }
+
+		     thisEntry = (FInfoAttrBuf *) attrBuf;
+
+		     for (index = 0; index < count; index++) {
+			 switch (thisEntry->objType) {
+			     case VREG:
+				 printf(
+				     "'%4.4s' '%4.4s' ",
+				     &thisEntry->finderInfo[0],
+				     &thisEntry->finderInfo[4]
+				 );
+				 break;
+			     case VDIR:
+				 printf("directory     ");
+				 break;
+			     default:
+				 printf(
+				     "objType = %-2d  ",
+				     thisEntry->objType
+				 );
+				 break;
+			 }
+			 printf(
+			     "%s\n",
+			     ((char *) &thisEntry->name)
+				 + thisEntry->name.attr_dataoffset
+			 );
+
+			 // Advance to the next entry.
+
+			 ((char *) thisEntry) += thisEntry->length;
+		     }
+		 }
+	     } while ( err == 0 && ! done );
+	 }
+
+	 if (dirFD != -1) {
+	     junk = close(dirFD);
+	     assert(junk == 0);
+	 }
+
+	 return err;
+     }
+
+SEE ALSO
+     getattrlist(2), getdirentries(2), lseek(2)
+
+HISTORY
+     A getdirentriesattr() function call appeared in Darwin 1.3.1 (Mac OS X
+     version 10.0).
+
+Darwin			       December 15, 2003			Darwin

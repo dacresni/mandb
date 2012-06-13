@@ -1,0 +1,37 @@
+GETPID(2)		    BSD System Calls Manual		     GETPID(2)
+
+NAME
+     getpid, getppid -- get parent or calling process identification
+
+SYNOPSIS
+     #include <unistd.h>
+
+     pid_t
+     getpid(void);
+
+     pid_t
+     getppid(void);
+
+DESCRIPTION
+     Getpid() returns the process ID of the calling process.  The ID is guar-
+     anteed to be unique and is useful for constructing temporary file names.
+
+     Getppid() returns the process ID of the parent of the calling process.
+
+ERRORS
+     The getpid() and getppid() functions are always successful, and no return
+     value is reserved to indicate an error.
+
+LEGACY SYNOPSIS
+     #include <sys/types.h>
+     #include <unistd.h>
+
+     The include file <sys/types.h> is necessary.
+
+SEE ALSO
+     gethostid(2), compat(5)
+
+STANDARDS
+     Getpid() and getppid() conform to IEEE Std 1003.1-1988 (``POSIX.1'').
+
+4th Berkeley Distribution	 June 4, 1993	     4th Berkeley Distribution

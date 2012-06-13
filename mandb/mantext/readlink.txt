@@ -1,0 +1,62 @@
+READLINK(2)		    BSD System Calls Manual		   READLINK(2)
+
+NAME
+     readlink -- read value of a symbolic link
+
+SYNOPSIS
+     #include <unistd.h>
+
+     ssize_t
+     readlink(const char *restrict path, char *restrict buf, size_t bufsize);
+
+DESCRIPTION
+     Readlink() places the contents of the symbolic link path in the buffer
+     buf, which has size bufsize.  Readlink does not append a NUL character to
+     buf.
+
+RETURN VALUES
+     The call returns the count of characters placed in the buffer if it suc-
+     ceeds, or a -1 if an error occurs, placing the error code in the global
+     variable errno.
+
+ERRORS
+     Readlink() will fail if:
+
+     [EACCES]		Search permission is denied for a component of the
+			path prefix.
+
+     [EFAULT]		Buf extends outside the process's allocated address
+			space.
+
+     [EINVAL]		The named file is not a symbolic link.
+
+     [EIO]		An I/O error occurred while reading from the file sys-
+			tem.
+
+     [ELOOP]		Too many symbolic links are encountered in translating
+			the pathname.  This is taken to be indicative of a
+			looping symbolic link.
+
+     [ENAMETOOLONG]	A component of a pathname exceeded {NAME_MAX} charac-
+			ters, or an entire path name (possibly expanded by a
+			symbolic link) exceeded {PATH_MAX} characters.
+
+     [ENOENT]		The named file does not exist.
+
+     [ENOTDIR]		A component of the path prefix is not a directory.
+
+LEGACY SYNOPSIS
+     #include <unistd.h>
+
+     int
+     readlink(const char *path, char *buf, int bufsize);
+
+     The function type and the type of bufsize have changed.
+
+SEE ALSO
+     lstat(2), stat(2), symlink(2), compat(5), symlink(7)
+
+HISTORY
+     The readlink() function call appeared in 4.2BSD.
+
+4.2 Berkeley Distribution	 June 4, 1993	     4.2 Berkeley Distribution

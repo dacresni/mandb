@@ -1,0 +1,50 @@
+PIPE(2) 		    BSD System Calls Manual		       PIPE(2)
+
+NAME
+     pipe -- create descriptor pair for interprocess communication
+
+SYNOPSIS
+     #include <unistd.h>
+
+     int
+     pipe(int fildes[2]);
+
+DESCRIPTION
+     The pipe() function creates a pipe (an object that allows unidirectional
+     data flow) and allocates a pair of file descriptors.  The first descrip-
+     tor connects to the read end of the pipe; the second connects to the
+     write end.
+
+     Data written to fildes[1] appears on (i.e., can be read from) fildes[0].
+     This allows the output of one program to be sent to another program: the
+     source's standard output is set up to be the write end of the pipe; the
+     sink's standard input is set up to be the read end of the pipe.  The pipe
+     itself persists until all of its associated descriptors are closed.
+
+     A pipe whose read or write end has been closed is considered widowed.
+     Writing on such a pipe causes the writing process to receive a SIGPIPE
+     signal.  Widowing a pipe is the only way to deliver end-of-file to a
+     reader: after the reader consumes any buffered data, reading a widowed
+     pipe returns a zero count.
+
+RETURN VALUES
+     On successful creation of the pipe, zero is returned. Otherwise, a value
+     of -1 is returned and the variable errno set to indicate the error.
+
+ERRORS
+     The pipe() call will fail if:
+
+     [EFAULT]		The fildes buffer is in an invalid area of the
+			process's address space.
+
+     [EMFILE]		Too many descriptors are active.
+
+     [ENFILE]		The system file table is full.
+
+SEE ALSO
+     sh(1), fork(2), read(2), socketpair(2), write(2)
+
+HISTORY
+     A pipe() function call appeared in Version 6 AT&T UNIX.
+
+4th Berkeley Distribution	 June 4, 1993	     4th Berkeley Distribution

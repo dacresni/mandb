@@ -1,0 +1,37 @@
+GETHOSTUUID(2)		 Mac OS X System Calls Manual		GETHOSTUUID(2)
+
+NAME
+     gethostuuid -- return a unique identifier for the current machine
+
+SYNOPSIS
+     #include <unistd.h>
+
+     int
+     gethostuuid(uuid_t id, const struct timespec *wait);
+
+DESCRIPTION
+     The gethostuuid() function returns a 16-byte uuid_t specified by id, that
+     uniquely identifies the current machine.  Be aware that the hardware
+     identifiers that gethostuuid() uses to generate the UUID can themselves
+     be modified.
+
+     The wait argument is a pointer to a struct timespec that specifies the
+     maximum time to wait for the result.  Setting the tv_sec and tv_nsec
+     fields to zero means to wait indefinitely until it completes.
+
+RETURN VALUES
+     The gethostuuid() function returns zero on success or -1 on error.
+
+ERRORS
+     The gethostuuid() functions fails if:
+
+     [EFAULT]		wait points to memory that is not a valid part of the
+			process address space.
+
+     [EWOULDBLOCK]	The wait timeout expired before the UUID could be
+			obtained.
+
+SEE ALSO
+     uuid(3)
+
+Mac OS X			  Nov 5, 2008			      Mac OS X

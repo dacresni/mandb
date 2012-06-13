@@ -1,0 +1,81 @@
+ACCESS(2)		    BSD System Calls Manual		     ACCESS(2)
+
+NAME
+     access -- check access permissions of a file or pathname
+
+SYNOPSIS
+     #include <unistd.h>
+
+     int
+     access(const char *path, int amode);
+
+DESCRIPTION
+     The access() function checks the accessibility of the file named by path
+     for the access permissions indicated by amode.  The value of amode is the
+     bitwise inclusive OR of the access permissions to be checked (R_OK for
+     read permission, W_OK for write permission and X_OK for execute/search
+     permission) or the existence test, F_OK.  All components of the pathname
+     path are checked for access permissions (including F_OK).
+
+     The real user ID is used in place of the effective user ID and the real
+     group access list (including the real group ID) are used in place of the
+     effective ID for verifying permission.
+
+     Even if a process has appropriate privileges and indicates success for
+     X_OK, the file may not actually have execute permission bits set.	Like-
+     wise for R_OK and W_OK.
+
+RETURN VALUES
+     If path cannot be found or if any of the desired access modes would not
+     be granted, then a -1 value is returned and the global integer variable
+     errno is set to indicate the error.  Otherwise, a 0 value is returned.
+
+ERRORS
+     Access to the file is denied if:
+
+     [EACCES]		Permission bits of the file mode do not permit the
+			requested access, or search permission is denied on a
+			component of the path prefix.
+
+			The owner of a file has permission checked with
+			respect to the ``owner'' read, write, and execute mode
+			bits, members of the file's group other than the owner
+			have permission checked with respect to the ``group''
+			mode bits, and all others have permissions checked
+			with respect to the ``other'' mode bits.
+
+     [EFAULT]		Path points outside the process's allocated address
+			space.
+
+     [EINVAL]		An invalid value was specified for amode.
+
+     [EIO]		An I/O error occurred while reading from or writing to
+			the file system.
+
+     [ELOOP]		Too many symbolic links were encountered in translat-
+			ing the pathname.
+
+     [ENAMETOOLONG]	A component of a pathname exceeded {NAME_MAX} charac-
+			ters, or an entire path name exceeded {PATH_MAX} char-
+			acters.
+
+     [ENOENT]		The named file does not exist.
+
+     [ENOTDIR]		A component of the path prefix is not a directory.
+
+     [EROFS]		Write access is requested for a file on a read-only
+			file system.
+
+     [ETXTBSY]		Write access is requested for a pure procedure (shared
+			text) file that is presently being executed.
+
+SEE ALSO
+     chmod(2), stat(2)
+
+STANDARDS
+     The access() function conforms to ISO/IEC 9945-1:1990 (``POSIX.1'').
+
+CAVEAT
+     Access() is a potential security hole and should never be used.
+
+4th Berkeley Distribution	 April 1, 1994	     4th Berkeley Distribution

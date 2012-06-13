@@ -1,0 +1,55 @@
+@import url(http://fonts.googleapis.com/css?family=Nova+Flat|Nova+Square);
+
+html {
+    background-color:black;
+}
+body {
+	color:#FFFFFF;
+	background-color:#000000;
+        padding-top: 20px;
+
+}
+nav {
+    
+}
+p {
+    font-family:'Nova Flat', cursive;
+}
+    
+@font-face {
+    font-family: pso; 
+    src: url('pso_font.TTF'); 
+} 
+
+@font-face {
+    font-family: HuRaMar; 
+    src: url('psoHRmar.TTF'); 
+}
+
+
+h1 {
+	color:#00F94B;
+	font-family: 'Nova Square', cursive; 
+}
+h2 {
+	color:#00F94B;
+    font-family:HuRaMar;
+}
+
+a {
+	color:cyan;
+}
+
+a:hover {
+        color:white;
+}
+
+
+footer {
+	list-style-type:none;
+}
+
+footer ul li {
+	display:inline;
+}
+

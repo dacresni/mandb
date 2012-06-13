@@ -1,0 +1,40 @@
+PTHREAD_KILL(2) 	    BSD System Calls Manual	       PTHREAD_KILL(2)
+
+NAME
+     pthread_kill -- send a signal to a specified thread
+
+SYNOPSIS
+     #include <signal.h>
+
+     int
+     pthread_kill(pthread_t thread, int sig);
+
+DESCRIPTION
+     The pthread_kill() function sends a signal, specified by sig, to a
+     thread, specified by thread.  If sig is 0, error checking is performed,
+     but no signal is actually sent.
+
+RETURN VALUES
+     If successful, pthread_kill() returns 0.  Otherwise, an error number is
+     returned.
+
+ERRORS
+     pthread_kill() will fail if:
+
+     [EINVAL]		sig is an invalid or unsupported signal number.
+
+     [ESRCH]		thread is an invalid thread ID.
+
+LEGACY SYNOPSIS
+     #include <pthread.h>
+     #include <signal.h>
+
+     The include file <pthread.h> is necessary.
+
+SEE ALSO
+     kill(2), pthread_self(3), raise(3), compat(5)
+
+STANDARDS
+     pthread_kill() conforms to ISO/IEC 9945-1:1996 (``POSIX.1'')
+
+BSD				 Feb 05, 2002				   BSD

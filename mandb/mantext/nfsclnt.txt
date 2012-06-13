@@ -1,0 +1,60 @@
+NFSCLNT(2)		    BSD System Calls Manual		    NFSCLNT(2)
+
+NAME
+     nfsclnt -- NFS client services
+
+SYNOPSIS
+     #include <unistd.h>
+     #include <nfs/nfs.h>
+
+     int
+     nfsclnt(int flags, void *argstructp);
+
+DESCRIPTION
+     The nfsclnt() function is used by the NFS client daemons to pass informa-
+     tion into and out of the kernel.  The flags argument consists of several
+     bits that show what action is to be taken once in the kernel and the
+     argstructp points to any corresponding data that the action may require.
+
+     rpc.lockd(8) calls nfsclnt() with the flag NFSCLNT_LOCKDANS and a pointer
+     to a
+
+     struct lockd_ans {
+	     int	     la_version;	     /* lockd_ans version */
+	     int	     la_errno;		     /* return status */
+	     u_int64_t	     la_xid;		     /* unique message transaction ID */
+	     int	     la_flags;		     /* answer flags */
+	     pid_t	     la_pid;		     /* pid of lock requester/owner */
+	     off_t	     la_start;		     /* lock starting offset */
+	     off_t	     la_len;		     /* lock length */
+	     int	     la_fh_len; 	     /* The file handle length. */
+	     u_int8_t	     la_fh[NFSV3_MAX_FH_SIZE];/* The file handle. */
+     };
+
+     to pass the response to an NFS file locking request back into the kernel.
+
+RETURN VALUES
+     Upon successful completion, a value of 0 is returned.  Otherwise, -1 is
+     returned and the global variable errno is set to specify the error.
+
+ERRORS
+     [EPERM]		The caller is not the super-user.
+
+     [EINVAL]		The action specified by the flags argument was not
+			valid.
+
+     [EFAULT]		argstructp points to an invalid address.
+
+     [EPIPE]		The response doesn't match any currently-outstanding
+			lock request.
+
+SEE ALSO
+     rpc.lockd(8)
+
+BUGS
+     The nfsclnt system call is designed specifically for the NFS client dae-
+     mons and as such is specific to their requirements.  Several fields of
+     the argument structures are assumed to be valid, such that nfsclnt must
+     be used with extreme care.
+
+BSD				January 9, 2007 			   BSD

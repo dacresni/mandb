@@ -1,0 +1,165 @@
+SEND(2) 		    BSD System Calls Manual		       SEND(2)
+
+NAME
+     send, sendmsg, sendto -- send a message from a socket
+
+SYNOPSIS
+     #include <sys/socket.h>
+
+     ssize_t
+     send(int socket, const void *buffer, size_t length, int flags);
+
+     ssize_t
+     sendmsg(int socket, const struct msghdr *message, int flags);
+
+     ssize_t
+     sendto(int socket, const void *buffer, size_t length, int flags,
+	 const struct sockaddr *dest_addr, socklen_t dest_len);
+
+DESCRIPTION
+     Send(), sendto(), and sendmsg() are used to transmit a message to another
+     socket.  Send() may be used only when the socket is in a connected state,
+     while sendto() and sendmsg() may be used at any time.
+
+     The address of the target is given by dest_addr with dest_len specifying
+     its size.	The length of the message is given by length.  If the message
+     is too long to pass atomically through the underlying protocol, the error
+     EMSGSIZE is returned, and the message is not transmitted.
+
+     No indication of failure to deliver is implicit in a send().  Locally
+     detected errors are indicated by a return value of -1.
+
+     If no messages space is available at the socket to hold the message to be
+     transmitted, then send() normally blocks, unless the socket has been
+     placed in non-blocking I/O mode.  The select(2) call may be used to
+     determine when it is possible to send more data.
+
+     The flags parameter may include one or more of the following:
+
+     #define MSG_OOB	    0x1  /* process out-of-band data */
+     #define MSG_DONTROUTE  0x4  /* bypass routing, use direct interface */
+
+     The flag MSG_OOB is used to send ``out-of-band'' data on sockets that
+     support this notion (e.g.	SOCK_STREAM); the underlying protocol must
+     also support ``out-of-band'' data.  MSG_DONTROUTE is usually used only by
+     diagnostic or routing programs.
+
+     The sendmsg() system call uses a msghdr structure to minimize the number
+     of directly supplied arguments.  The msg_iov and msg_iovlen fields of
+     message specify zero or more buffers containing the data to be sent.
+     msg_iov points to an array of iovec structures; msg_iovlen shall be set
+     to the dimension of this array.  In each iovec structure, the iov_base
+     field specifies a storage area and the iov_len field gives its size in
+     bytes. Some of these sizes can be zero.  The data from each storage area
+     indicated by msg_iov is sent in turn.  See recv(2) for a complete
+     description of the msghdr structure.
+
+RETURN VALUES
+     Upon successful completion, the number of bytes which were sent is
+     returned.	Otherwise, -1 is returned and the global variable errno is set
+     to indicate the error.
+
+ERRORS
+     The send(), sendmsg(), and sendto() system calls will fail if:
+
+     [EACCES]		The SO_BROADCAST option is not set on the socket and a
+			broadcast address is given as the destination.
+
+     [EAGAIN]		The socket is marked non-blocking and the requested
+			operation would block.
+
+     [EBADF]		An invalid descriptor is specified.
+
+     [ECONNRESET]	A connection is forcibly closed by a peer.
+
+     [EFAULT]		An invalid user space address is specified for a
+			parameter.
+
+     [EHOSTUNREACH]	The destination address specifies an unreachable host.
+
+     [EINTR]		A signal interrupts the system call before any data is
+			transmitted.
+
+     [EMSGSIZE] 	The socket requires that message be sent atomically,
+			and the size of the message to be sent makes this
+			impossible.  IOV_MAX.
+
+     [ENETDOWN] 	The local network interface used to reach the destina-
+			tion is down.
+
+     [ENETUNREACH]	No route to the network is present.
+
+     [ENOBUFS]		The system is unable to allocate an internal buffer.
+			The operation may succeed when buffers become avail-
+			able.
+
+     [ENOBUFS]		The output queue for a network interface is full.
+			This generally indicates that the interface has
+			stopped sending, but may be caused by transient con-
+			gestion.
+
+     [ENOTSOCK] 	The argument socket is not a socket.
+
+     [EOPNOTSUPP]	socket does not support (some of) the option(s) speci-
+			fied in flags.
+
+     [EPIPE]		The socket is shut down for writing or the socket is
+			connection-mode and is no longer connected.  In the
+			latter case, and if the socket is of type SOCK_STREAM,
+			the SIGPIPE signal is generated to the calling thread.
+
+     The sendmsg() and sendto() system calls will fail if:
+
+     [EAFNOSUPPORT]	Addresses in the specified address family cannot be
+			used with this socket.
+
+     [EDESTADDRREQ]	The socket is not connection-mode and does not have
+			its peer address set, and no destination address is
+			specified.
+
+     [EISCONN]		A destination address was specified and the socket is
+			already connected.
+
+     [ENOENT]		A component of the pathname does not name an existing
+			file or the path name is an empty string.
+
+     [ENOMEM]		Insufficient memory is available to fulfill the
+			request.
+
+     [ENOTCONN] 	The socket is connection-mode, but is not connected.
+
+     [ENOTDIR]		A component of the path prefix of the pathname in the
+			socket address is not a directory.
+
+     The send() system call will fail if:
+
+     [EDESTADDRREQ]	The socket is not connection-mode and no peer address
+			is set.
+
+     [ENOTCONN] 	The socket is not connected or otherwise has not had
+			the peer pre-specified.
+
+     The sendmsg() system call will fail if:
+
+     [EINVAL]		The sum of the iov_len values overflows an ssize_t.
+
+     [EMSGSIZE] 	The socket requires that message be sent atomically,
+			and the size of the message to be sent makes this
+			impossible, or the msg_iovlen member of the msghdr
+			structure pointed to by message is less than or equal
+			to 0 or is greater than IOV_MAX.
+
+LEGACY SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/socket.h>
+
+     The include file <sys/types.h> is necessary.
+
+SEE ALSO
+     fcntl(2), getsockopt(2), recv(2), select(2), socket(2), write(2),
+     compat(5)
+
+HISTORY
+     The send() function call appeared in 4.2BSD.
+
+4.2 Berkeley Distribution      February 21, 1994     4.2 Berkeley Distribution

@@ -1,0 +1,35 @@
+SEM_POST(2)		    BSD System Calls Manual		   SEM_POST(2)
+
+NAME
+     sem_post -- unlock a semaphore
+
+SYNOPSIS
+     #include <semaphore.h>
+
+     int
+     sem_post(sem_t *sem);
+
+DESCRIPTION
+     The semaphore referenced by sem is unlocked, the value of the semaphore
+     is incremented, and all threads which are waiting on the semaphore are
+     awakened.
+
+     sem_post() is reentrant with respect to signals and may be called from
+     within a signal hanlder.
+
+     If successful, sem_post() will return 0.  Otherwise, -1 is returned and
+     errno is set.
+
+ERRORS
+     sem_post() succeeds unless:
+
+     [EINVAL]		sem is not a valid semaphore descriptor.
+
+SEE ALSO
+     sem_open(2), sem_trywait(2), sem_wait(2), semctl(2), semget(2), semop(2)
+
+HISTORY
+     sem_post() is specified in the POSIX Realtime Extension
+     (1003.1b-1993/1003.1i-1995).
+
+Darwin				 June 8, 2000				Darwin

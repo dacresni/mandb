@@ -1,0 +1,89 @@
+SYMLINK(2)		    BSD System Calls Manual		    SYMLINK(2)
+
+NAME
+     symlink -- make symbolic link to a file
+
+SYNOPSIS
+     #include <unistd.h>
+
+     int
+     symlink(const char *path1, const char *path2);
+
+DESCRIPTION
+     A symbolic link path2 is created to path1 (path2 is the name of the file
+     created, path1 is the string used in creating the symbolic link).	Either
+     name may be an arbitrary path name; the files need not be on the same
+     file system.
+
+RETURN VALUES
+     Upon successful completion, a zero value is returned.  If an error
+     occurs, the error code is stored in errno and a -1 value is returned.
+
+ERRORS
+     The symbolic link succeeds unless:
+
+     [EACCES]		Write permission is denied in the directory where the
+			symbolic link is being created.
+
+     [EACCES]		A component of the path2 path prefix denies search
+			permission.
+
+     [EDQUOT]		The directory in which the entry for the new symbolic
+			link is being placed cannot be extended because the
+			user's quota of disk blocks on the file system con-
+			taining the directory has been exhausted.
+
+     [EDQUOT]		The new symbolic link cannot be created because the
+			user's quota of disk blocks on the file system that
+			will contain the symbolic link has been exhausted.
+
+     [EDQUOT]		The user's quota of inodes on the file system on which
+			the symbolic link is being created has been exhausted.
+
+     [EEXIST]		Path2 already exists.
+
+     [EFAULT]		Path1 or path2 points outside the process's allocated
+			address space.
+
+     [EIO]		An I/O error occurs while making the directory entry
+			or allocating the inode.
+
+     [EIO]		An I/O error occurs while making the directory entry
+			for path2, or allocating the inode for path2, or writ-
+			ing out the link contents of path2.
+
+     [ELOOP]		Too many symbolic links are encountered in translating
+			the pathname.  This is taken to be indicative of a
+			looping symbolic link.
+
+     [ENAMETOOLONG]	A component of a pathname exceeds {NAME_MAX} charac-
+			ters, or an entire path name exceeds {PATH_MAX} char-
+			acters.
+
+     [ENOENT]		A component of path2 does not name an existing file or
+			path2 is an empty string.
+
+     [ENOSPC]		The directory in which the entry for the new symbolic
+			link is being placed cannot be extended because there
+			is no space left on the file system containing the
+			directory.
+
+     [ENOSPC]		The new symbolic link cannot be created because there
+			there is no space left on the file system that will
+			contain the symbolic link.
+
+     [ENOSPC]		There are no free inodes on the file system on which
+			the symbolic link is being created.
+
+     [ENOTDIR]		A component of the path2 prefix is not a directory.
+
+     [EROFS]		The file path2 would reside on a read-only file sys-
+			tem.
+
+SEE ALSO
+     ln(1), link(2), unlink(2), symlink(7)
+
+HISTORY
+     The symlink() function call appeared in 4.2BSD.
+
+4.2 Berkeley Distribution	 June 4, 1993	     4.2 Berkeley Distribution

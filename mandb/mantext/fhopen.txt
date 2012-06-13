@@ -1,0 +1,42 @@
+FHOPEN(2)		    BSD System Calls Manual		     FHOPEN(2)
+
+NAME
+     fhopen -- open a file by file handle
+
+SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/mount.h>
+
+     int
+     fhopen(const struct fhandle *fhp, int flags);
+
+DESCRIPTION
+     The file specified by the given file handle is opened for reading and/or
+     writing, as specified by the argument flags; the file descriptor is
+     returned to the calling process.
+
+     This system call is restricted to the super-user and is used by an NFS
+     server's rpc.lockd(8) daemon to open a file in order to perform locking
+     operations on it.
+
+RETURN VALUES
+     Upon successful completion, a value of 0 is returned.  Otherwise, -1 is
+     returned and the global variable errno is set to indicate the error.
+
+ERRORS
+     fhopen() fails if one or more of the following are true:
+
+     [ESTALE]		The file handle no longer refers to a valid, NFS-
+			exported object.
+
+     [EPERM]		The caller is not the super-user.
+
+     [EINVAL]		There was a problem with the value of one of the argu-
+			ments.
+
+     [EFAULT]		fhp points to an invalid address.
+
+SEE ALSO
+     rpc.lockd(8)
+
+BSD				January 9, 2007 			   BSD

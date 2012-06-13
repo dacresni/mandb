@@ -1,0 +1,111 @@
+SIGALTSTACK(2)		    BSD System Calls Manual		SIGALTSTACK(2)
+
+NAME
+     sigaltstack -- set and/or get signal stack context
+
+SYNOPSIS
+     #include <signal.h>
+
+     int
+     sigaltstack(const stack_t *restrict ss, stack_t *restrict oss);
+
+DESCRIPTION
+     Sigaltstack() allows users to define an alternate stack on which signals
+     are to be processed.  If ss is non-zero, it specifies a pointer to and
+     the size of a signal stack on which to deliver signals, and tells the
+     system if the process is currently executing on that stack.  When a sig-
+     nal's action indicates its handler should execute on the signal stack
+     (specified with a sigaction(2) call), the system checks to see if the
+     process is currently executing on that stack.  If the process is not cur-
+     rently executing on the signal stack, the system arranges a switch to the
+     signal stack for the duration of the signal handler's execution.
+
+     If SA_DISABLE is set in ss_flags, ss_sp and ss_size are ignored and the
+     signal stack will be disabled.  Trying to disable an active stack will
+     cause sigaltstack to return -1 with errno set to EINVAL.  A disabled
+     stack will cause all signals to be taken on the regular user stack.  If
+     the stack is later re-enabled then all signals that were specified to be
+     processed on an alternate stack will resume doing so.
+
+     If oss is non-zero, the current signal stack state is returned.  The
+     ss_flags field will contain the value SA_ONSTACK if the process is cur-
+     rently on a signal stack and SA_DISABLE if the signal stack is currently
+     disabled.
+
+NOTES
+     The value SIGSTKSZ is defined to be the number of bytes/chars that would
+     be used to cover the usual case when allocating an alternate stack area.
+     The following code fragment is typically used to allocate an alternate
+     stack.
+
+	   if ((sigstk.ss_sp = malloc(SIGSTKSZ)) == NULL)
+		   /* error return */
+	   sigstk.ss_size = SIGSTKSZ;
+	   sigstk.ss_flags = 0;
+	   if (sigaltstack(&sigstk,0) < 0)
+		   perror("sigaltstack");
+     An alternative approach is provided for programs with signal handlers
+     that require a specific amount of stack space other than the default
+     size.  The value MINSIGSTKSZ is defined to be the number of bytes/chars
+     that is required by the operating system to implement the alternate stack
+     feature.  In computing an alternate stack size, programs should add
+     MINSIGSTKSZ to their stack requirements to allow for the operating system
+     overhead.
+
+     Signal stacks are automatically adjusted for the direction of stack
+     growth and alignment requirements.  Signal stacks may or may not be pro-
+     tected by the hardware and are not ``grown'' automatically as is done for
+     the normal stack.	If the stack overflows and this space is not protected
+     unpredictable results may occur.
+
+RETURN VALUES
+     Upon successful completion, a value of 0 is returned.  Otherwise, a value
+     of -1 is returned and errno is set to indicate the error.
+
+ERRORS
+     Sigaltstack() will fail and the signal stack context will remain
+     unchanged if one of the following occurs.
+
+     [EFAULT]  Either ss or oss points to memory that is not a valid part of
+	       the process address space.
+
+     [EINVAL]  An attempt is made to disable an active stack.
+
+     [EINVAL]  The ss argument is not a null pointer, and the ss_flags member
+	       pointed to by ss contains flags other than SS_DISABLE.
+
+     [ENOMEM]  The size of the alternate stack area is less than or equal to
+	       MINSIGSTKSZ.
+
+     [EPERM]   An attempt was made to modify an active stack.
+
+LEGACY SYNOPSIS
+     #include <sys/types.h>
+     #include <signal.h>
+
+     The include file <sys/types.h> is necessary.
+
+     struct sigaltstack {
+	     char   *ss_sp;
+	     int     ss_size;
+	     int     ss_flags;
+     };
+
+     int
+     sigaltstack(const struct sigaltstack *ss, struct sigaltstack *oss);
+
+     The variable types have changed.  Specifically, the sigaltstack struct is
+     no longer used.
+
+COMPATIBILITY
+     Use of the (obsolete) sigaltstack struct will cause compiler diagnostics.
+     Use stack_t, defined in <signal.h>.
+
+SEE ALSO
+     sigaction(2), setjmp(3), compat(5)
+
+HISTORY
+     The predecessor to sigaltstack, the sigstack() system call, appeared in
+     4.2BSD.
+
+4.2 Berkeley Distribution	 June 4, 1993	     4.2 Berkeley Distribution

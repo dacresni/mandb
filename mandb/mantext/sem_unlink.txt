@@ -1,0 +1,38 @@
+SEM_UNLINK(2)		    BSD System Calls Manual		 SEM_UNLINK(2)
+
+NAME
+     sem_unlink -- remove a named semaphore
+
+SYNOPSIS
+     #include <semaphore.h>
+
+     int
+     sem_unlink(const char *name);
+
+DESCRIPTION
+     The named semaphore named name is removed.  If the semaphore is in use by
+     other processes, then name is immediately disassociated with the sema-
+     phore, but the semaphore itself will not be removed until all references
+     to it have been closed.  Subsequent calls to sem_open() using name will
+     refer to or create a new semaphore named name.
+
+     If successful, sem_unlink() will return 0.  Otherwise, -1 is returned and
+     errno is set, and the state of the semaphore is unchanged.
+
+ERRORS
+     sem_unlink() succeeds unless:
+
+     [EACCES]		Permission is denied to be remove the semaphore.
+
+     [ENAMETOOLONG]	name exceeded SEM_NAME_LEN characters.
+
+     [ENOENT]		The named semaphore does not exist.
+
+SEE ALSO
+     sem_close(2), sem_open(2), semctl(2), semget(2), semop(2)
+
+HISTORY
+     sem_unlink() is specified in the POSIX Realtime Extension
+     (1003.1b-1993/1003.1i-1995).
+
+Darwin				 June 8, 2000				Darwin

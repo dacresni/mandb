@@ -1,0 +1,42 @@
+GETUID(2)		    BSD System Calls Manual		     GETUID(2)
+
+NAME
+     geteuid, getuid -- get user identification
+
+SYNOPSIS
+     #include <unistd.h>
+
+     uid_t
+     geteuid(void);
+
+     uid_t
+     getuid(void);
+
+DESCRIPTION
+     The getuid() function returns the real user ID of the calling process.
+     The geteuid() function returns the effective user ID of the calling
+     process.
+
+     The real user ID is that of the user who has invoked the program.	As the
+     effective user ID gives the process additional permissions during execu-
+     tion of ``set-user-ID'' mode processes, getuid() is used to determine the
+     real-user-id of the calling process.
+
+ERRORS
+     The getuid() and geteuid() functions are always successful, and no return
+     value is reserved to indicate an error.
+
+LEGACY SYNOPSIS
+     #include <sys/types.h>
+     #include <unistd.h>
+
+     The include file <sys/types.h> is necessary for both functions.
+
+SEE ALSO
+     getgid(2), setreuid(2), compat(5)
+
+STANDARDS
+     Geteuid() and getuid() functions conform to IEEE Std 1003.1-1988
+     (``POSIX.1'').
+
+4th Berkeley Distribution	 June 4, 1993	     4th Berkeley Distribution

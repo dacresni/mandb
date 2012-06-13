@@ -1,0 +1,62 @@
+SETAUID(2)		    BSD System Calls Manual		    SETAUID(2)
+
+NAME
+     setauid -- set audit indentifier
+
+SYNOPSIS
+     #include <bsm/audit.h>
+
+     int
+     setauid(au_id_t *auid);
+
+DESCRIPTION
+     The setauid() system call sets the active audit identifier for the cur-
+     rent process from the au_id_t pointed to by auid.	The value of AU_DEFAU-
+     DITID (-1) should not be used for auid.
+
+     This system call requires an appropriate privilege to complete.
+
+     Once the audit identifier is set to some other value than AU_DEAUDITID
+     (-1) then it is immutable.  This system call may be used to set the audit
+     identifier after initially setting up the audit session with the
+     setaudit(2), or setaudit_addr(2) system call.
+
+RETURN VALUES
+     Upon successful completion, the value 0 is returned; otherwise the
+     value -1 is returned and the global variable errno is set to indicate the
+     error.
+
+ERRORS
+     The setauid() function will fail if:
+
+     [EFAULT]		A failure occurred while data transferred to the ker-
+			nel failed.
+
+     [EINVAL]		An invalid value for auid was used.  auid can be any
+			value of type au_id_t except AU_DEFAUDITID.
+
+     [EPERM]		The process does not have sufficient permission to
+			complete the operation.
+
+SEE ALSO
+     audit(2), auditon(2), getaudit(2), getaudit_addr(2), getauid(2),
+     setaudit(2), setaudit_addr(2), libbsm(3)
+
+HISTORY
+     The OpenBSM implementation was created by McAfee Research, the security
+     division of McAfee Inc., under contract to Apple Computer Inc. in 2004.
+     It was subsequently adopted by the TrustedBSD Project as the foundation
+     for the OpenBSM distribution.
+
+AUTHORS
+     This software was created by McAfee Research, the security research divi-
+     sion of McAfee, Inc., under contract to Apple Computer Inc.  Additional
+     authors include Wayne Salamon, Robert Watson, and SPARTA Inc.
+
+     The Basic Security Module (BSM) interface to audit records and audit
+     event stream format were defined by Sun Microsystems.
+
+     This manual page was written by Robert Watson <rwatson@FreeBSD.org> and
+     Stacey Son <sson@FreeBSD.org>.
+
+BSD				March 21, 2009				   BSD

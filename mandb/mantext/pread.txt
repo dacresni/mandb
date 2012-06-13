@@ -1,0 +1,152 @@
+READ(2) 		    BSD System Calls Manual		       READ(2)
+
+NAME
+     pread, read, readv -- read input
+
+LIBRARY
+     Standard C Library (libc, -lc)
+
+SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/uio.h>
+     #include <unistd.h>
+
+     ssize_t
+     pread(int d, void *buf, size_t nbyte, off_t offset);
+
+     ssize_t
+     read(int fildes, void *buf, size_t nbyte);
+
+     ssize_t
+     readv(int d, const struct iovec *iov, int iovcnt);
+
+DESCRIPTION
+     Read() attempts to read nbyte bytes of data from the object referenced by
+     the descriptor fildes into the buffer pointed to by buf.  Readv() per-
+     forms the same action, but scatters the input data into the iovcnt
+     buffers specified by the members of the iov array: iov[0], iov[1], ...,
+     iov[iovcnt-1].  Pread() performs the same function, but reads from the
+     specified position in the file without modifying the file pointer.
+
+     For readv(), the iovec structure is defined as:
+
+	   struct iovec {
+		   char   *iov_base;  /* Base address. */
+		   size_t iov_len;    /* Length. */
+	   };
+
+     Each iovec entry specifies the base address and length of an area in mem-
+     ory where data should be placed.  Readv() will always fill an area com-
+     pletely before proceeding to the next.
+
+     On objects capable of seeking, the read() starts at a position given by
+     the pointer associated with fildes (see lseek(2)).  Upon return from
+     read(), the pointer is incremented by the number of bytes actually read.
+
+     Objects that are not capable of seeking always read from the current
+     position.	The value of the pointer associated with such an object is
+     undefined.
+
+     Upon successful completion, read(), readv(), and pread() return the num-
+     ber of bytes actually read and placed in the buffer.  The system guaran-
+     tees to read the number of bytes requested if the descriptor references a
+     normal file that has that many bytes left before the end-of-file, but in
+     no other case.
+
+RETURN VALUES
+     If successful, the number of bytes actually read is returned.  Upon read-
+     ing end-of-file, zero is returned.  Otherwise, a -1 is returned and the
+     global variable errno is set to indicate the error.
+
+ERRORS
+     The pread(), read(), and readv() calls will succeed unless:
+
+     [EAGAIN]		The file was marked for non-blocking I/O, and no data
+			were ready to be read.
+
+     [EBADF]		fildes is not a valid file or socket descriptor open
+			for reading.
+
+     [EFAULT]		Buf points outside the allocated address space.
+
+     [EINTR]		A read from a slow device was interrupted before any
+			data arrived by the delivery of a signal.
+
+     [EINVAL]		The pointer associated with fildes was negative.
+
+     [EIO]		An I/O error occurred while reading from the file sys-
+			tem.
+
+     [EIO]		The process group is orphaned.
+
+     [EIO]		The file is a regular file, nbyte is greater than 0,
+			the starting position is before the end-of-file, and
+			the starting position is greater than or equal to the
+			offset maximum established for the open file descrip-
+			tor associated with fildes.
+
+     [EISDIR]		An attempt is made to read a directory.
+
+     [ENOBUFS]		An attempt to allocate a memory buffer fails.
+
+     [ENOMEM]		Insufficient memory is available.
+
+     [ENXIO]		An action is requested of a device that does not
+			exist..
+
+     [ENXIO]		A requested action cannot be performed by the device.
+
+     The pread() call may also return the following errors:
+
+     [EINVAL]		The specified file offset is invalid.
+
+     [ESPIPE]		The file descriptor is associated with a pipe, socket,
+			or FIFO.
+
+     The read() call may also return the following errors:
+
+     [ECONNRESET]	The connection is closed by the peer during a read
+			attempt on a socket.
+
+     [ENOTCONN] 	A read is attempted on an unconnected socket.
+
+     [ETIMEDOUT]	A transmission timeout occurs during a read attempt on
+			a socket.
+
+     The readv() call may also return one of the following errors:
+
+     [EFAULT]		Part of the iov points outside the process's allocated
+			address space.
+
+     [EINVAL]		Iovcnt was less than or equal to 0, or greater than
+			16.
+
+     [EINVAL]		One of the iov_len values in the iov array was nega-
+			tive.
+
+     [EINVAL]		The sum of the iov_len values in the iov array over-
+			flowed a 32-bit integer.
+
+LEGACY SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/uio.h>
+     #include <unistd.h>
+
+     The include files <sys/types.h> and <sys/uio.h> are necessary for all
+     functions.
+
+SEE ALSO
+     dup(2), fcntl(2), open(2), pipe(2), select(2), socket(2), socketpair(2),
+     compat(5)
+
+STANDARDS
+     The read() function call is expected to conform to ISO/IEC 9945-1:1990
+     (``POSIX.1'').  The readv() and pread() functions are expected to conform
+     to X/Open Portability Guide Issue 4, Version 2 (``XPG4.2'').
+
+HISTORY
+     The pread() function call appeared in AT&T System V.4 UNIX.  The readv()
+     function call appeared in 4.2BSD.	A read() function call appeared in
+     Version 6 AT&T UNIX.
+
+BSD			       February 26, 1994			   BSD

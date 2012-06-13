@@ -1,0 +1,31 @@
+SIGPENDING(2)		    BSD System Calls Manual		 SIGPENDING(2)
+
+NAME
+     sigpending -- get pending signals
+
+SYNOPSIS
+     #include <signal.h>
+
+     int
+     sigpending(sigset_t *set);
+
+DESCRIPTION
+     The sigpending function returns a mask of the signals pending for deliv-
+     ery to the calling process in the location indicated by set.  Signals may
+     be pending because they are currently masked, or transiently before
+     delivery (although the latter case is not normally detectable).
+
+RETURN VALUES
+     A 0 value indicated that the call succeeded.  A -1 return value indicates
+     an error occurred and errno is set to indicated the reason.
+
+ERRORS
+     The sigpending function does not currently detect any errors.
+
+SEE ALSO
+     sigaction(2), sigprocmask(2)
+
+STANDARDS
+     The sigpending function is defined by IEEE Std 1003.1-1988 (``POSIX.1'').
+
+BSD			       January 12, 1994 			   BSD

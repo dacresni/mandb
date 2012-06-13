@@ -1,0 +1,91 @@
+MKNOD(2)		    BSD System Calls Manual		      MKNOD(2)
+
+NAME
+     mknod -- make a special file node
+
+SYNOPSIS
+     #include <sys/stat.h>
+
+     int
+     mknod(const char *path, mode_t mode, dev_t dev);
+
+DESCRIPTION
+     The device special file path is created with the major and minor device
+     numbers extracted from mode.  The access permissions of path are con-
+     strained by the umask(2) of the parent process.
+
+     If mode indicates a block or character special file, dev is a configura-
+     tion-dependent specification of a character or block I/O device and the
+     superblock of the device.	If mode does not indicate a block special or
+     character special device, dev is ignored.
+
+     Mknod() requires super-user privileges.
+
+RETURN VALUES
+     Upon successful completion, a value of 0 is returned.  Otherwise, a value
+     of -1 is returned and errno is set to indicate the error.
+
+ERRORS
+     Mknod() will fail and the file will be not created if:
+
+     [EACCES]		Search permission is denied for a component of the
+			path prefix.
+
+     [EACCES]		Write permission is denied for the parent directory.
+
+     [EDQUOT]		The directory in which the entry for the new node is
+			being placed cannot be extended; the user's quota of
+			disk blocks on the file system containing the direc-
+			tory has been exhausted.
+
+     [EDQUOT]		The user's quota of inodes for the file system on
+			which the node is being created has been exhausted.
+
+     [EEXIST]		The named file exists.
+
+     [EFAULT]		Path points outside the process's allocated address
+			space.
+
+     [EINVAL]		One or more of the arguments is invalid.
+
+     [EIO]		An I/O error occurs while making the directory entry
+			or allocating the inode.
+
+     [ELOOP]		Too many symbolic links were encountered in translat-
+			ing the pathname.  This is taken to be indicative of a
+			looping symbolic link.
+
+     [ENAMETOOLONG]	A component of a pathname exceeds {NAME_MAX} charac-
+			ters or an entire path name exceeds {PATH_MAX} charac-
+			ters.
+
+     [ENOENT]		A component of the path prefix does not exist or path
+			is an empty string.
+
+     [ENOSPC]		The directory in which the entry for the new node is
+			being placed cannot be extended, because there is no
+			space left on the file system containing the direc-
+			tory.
+
+     [ENOSPC]		There are no free inodes on the file system on which
+			the node is being created.
+
+     [ENOTDIR]		A component of the path prefix is not a directory.
+
+     [EPERM]		The process's effective user ID is not super-user.
+
+     [EROFS]		The created node would reside on a read-only file sys-
+			tem.
+
+LEGACY SYNOPSIS
+     #include <unistd.h>
+
+     The include file has changed.
+
+SEE ALSO
+     chmod(2), stat(2), umask(2), compat(5)
+
+HISTORY
+     A mknod() function call appeared in Version 6 AT&T UNIX.
+
+4th Berkeley Distribution	 June 4, 1993	     4th Berkeley Distribution

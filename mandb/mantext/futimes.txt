@@ -1,0 +1,102 @@
+UTIMES(2)		    BSD System Calls Manual		     UTIMES(2)
+
+NAME
+     futimes, utimes -- set file access and modification times
+
+LIBRARY
+     Standard C Library (libc, -lc)
+
+SYNOPSIS
+     #include <sys/time.h>
+
+     int
+     futimes(int fildes, const struct timeval times[2]);
+
+     int
+     utimes(const char *path, const struct timeval times[2]);
+
+DESCRIPTION
+     The access and modification times of the file named by path or referenced
+     by fildes are changed as specified by the argument times.
+
+     If times is NULL, the access and modification times are set to the cur-
+     rent time.  The caller must be the owner of the file, have permission to
+     write the file, or be the super-user.
+
+     If times is non-NULL, it is assumed to point to an array of two timeval
+     structures.  The access time is set to the value of the first element,
+     and the modification time is set to the value of the second element.  The
+     caller must be the owner of the file or be the super-user.
+
+     In either case, the inode-change-time of the file is set to the current
+     time.
+
+RETURN VALUES
+     Upon successful completion, the value 0 is returned; otherwise the
+     value -1 is returned and the global variable errno is set to indicate the
+     error.
+
+ERRORS
+     The utimes() system call will fail if:
+
+     [EACCES]		Search permission is denied for a component of the
+			path prefix; or the times argument is NULL and the
+			effective user ID of the process does not match the
+			owner of the file, and is not the super-user, and
+			write access is denied.
+
+     [EFAULT]		path or times points outside the process's allocated
+			address space.
+
+     [EIO]		An I/O error occurs while reading or writing the
+			affected inode.
+
+     [ELOOP]		Too many symbolic links are encountered in translating
+			the pathname.  This is taken to be indicative of a
+			looping symbolic link.
+
+     [ENAMETOOLONG]	A component of a pathname exceeds NAME_MAX characters,
+			or an entire path name exceeded PATH_MAX characters.
+
+     [ENOENT]		The named file does not exist.
+
+     [ENOTDIR]		A component of the path prefix is not a directory.
+
+     [EPERM]		The times argument is not NULL and the calling
+			process's effective user ID does not match the owner
+			of the file and is not the super-user.
+
+     [EROFS]		The file system containing the file is mounted read-
+			only.
+
+     The futimes() system call will fail if:
+
+     [EBADF]		fildes does not refer to a valid descriptor.
+
+     All of the functions will fail if:
+
+     [EACCES]		The times argument is NULL and the effective user ID
+			of the process does not match the owner of the file,
+			and is not the super-user, and write access is denied.
+
+     [EFAULT]		times points outside the process's allocated address
+			space.
+
+     [EIO]		An I/O error occurred while reading or writing the
+			affected inode.
+
+     [EPERM]		The times argument is not NULL and the calling
+			process's effective user ID does not match the owner
+			of the file and is not the super-user.
+
+     [EROFS]		The file system containing the file is mounted read-
+			only.
+
+SEE ALSO
+     stat(2), utime(3)
+
+HISTORY
+     The utimes() function call appeared in 4.2BSD.  The futimes() function
+     call first appeared in FreeBSD 3.0.
+
+BSD				 June 4, 1993				   BSD

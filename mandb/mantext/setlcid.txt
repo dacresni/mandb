@@ -1,0 +1,51 @@
+SETLCID(3)		 BSD Library Functions Manual		    SETLCID(3)
+
+NAME
+     setlcid -- set login context
+
+SYNOPSIS
+     #include <sys/lctx.h>
+
+     int
+     setlcid(pid_t pid, pid_t lcid);
+
+DESCRIPTION
+     The setlcid() system call sets the login context of the specified process
+     pid to the specified lcid.  If the pid is zero, then the call applies to
+     the current process.  If the lcid is zero a new login context will be
+     created.  If the lcid is -1 the process will be removed from the login
+     context it is currently a member of, if any.
+
+     Creation of a new login context is only valid for the current process.  A
+     process may not create a new login context if it is currently a member of
+     one.
+
+     Superuser privilege is required to add or remove a process from a login
+     context.
+
+RETURN VALUES
+     The setlcid() function returns the value 0 if successful; otherwise the
+     value -1 is returned and the global variable errno is set to indicate the
+     error.
+
+ERRORS
+     The setlcid() function will fail if:
+
+     [EPERM]		Operation not permitted.
+
+     [ESRCH]		No such process.
+
+     [ENOMEM]		Cannot allocate memory.
+
+     [ENOATTR]		Attribute not found.
+
+SEE ALSO
+     getlcid(2)
+
+HISTORY
+     The setlcid manual page first appeared in FreeBSD 6.0.
+
+AUTHORS
+     This manual page was written by Matthew N. Dodd <mdodd@FreeBSD.org>.
+
+BSD				  May 5, 2005				   BSD

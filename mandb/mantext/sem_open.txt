@@ -1,0 +1,89 @@
+SEM_OPEN(2)		    BSD System Calls Manual		   SEM_OPEN(2)
+
+NAME
+     sem_open -- initialize and open a named semaphore
+
+SYNOPSIS
+     #include <semaphore.h>
+
+     sem_t *
+     sem_open(const char *name, int oflag, ...);
+
+     The parameters "mode_t mode" and "unsigned int value" are optional.
+
+DESCRIPTION
+     The named semaphore named name is initialized and opened as specified by
+     the argument oflag and a semaphore descriptor is returned to the calling
+     process.
+
+     The value of oflag is formed by or'ing the following values:
+
+	   O_CREAT	   create the semaphore if it does not exist
+	   O_EXCL	   error if create and semaphore exists
+
+     If O_CREAT is specified, sem_open() requires an additional two arguments.
+     mode specifies the permissions for the semaphore as described in chmod(2)
+     and modified by the process' umask value (see umask(2)).  The semaphore
+     is created with an initial value, which must be less than or equal to
+     SEM_VALUE_MAX.
+
+     If O_EXCL is specified and the semaphore exists, sem_open() fails.  The
+     check for the existence of the semaphore and the creation of the sema-
+     phore are atomic with respect to all processes calling sem_open() with
+     O_CREAT and O_EXCL set.
+
+     When a new semaphore is created, it is given the user ID and group ID
+     which correspond to the effective user and group IDs of the calling
+     process. There is no visible entry in the file system for the created
+     object in this implementation.
+
+     The returned semaphore descriptor is available to the calling process
+     until it is closed with sem_close(), or until the caller exits or execs.
+
+     If a process makes repeated calls to sem_open(), with the same name argu-
+     ment, the same descriptor is returned for each successful call, unless
+     sem_unlink() has been called on the semaphore in the interim.
+
+     If sem_open() fails for any reason, it will return a value of SEM_FAILED
+     and sets errno.  On success, it returns a semaphore descriptor.
+
+ERRORS
+     The named semaphore is opened unless:
+
+     [EACCES]		The required permissions (for reading and/or writing)
+			are denied for the given flags; or O_CREAT is speci-
+			fied, the object does not exist, and permission to
+			create the semaphore is denied.
+
+     [EEXIST]		O_CREAT and O_EXCL were specified and the semaphore
+			exists.
+
+     [EINTR]		The sem_open() operation was interrupted by a signal.
+
+     [EINVAL]		The shm_open() operation is not supported; or O_CREAT
+			is specified and value exceeds SEM_VALUE_MAX.
+
+     [EMFILE]		The process has already reached its limit for sema-
+			phores or file descriptors in use.
+
+     [ENAMETOOLONG]	name exceeded SEM_NAME_LEN characters.
+
+     [ENFILE]		Too many semaphores or file descriptors are open on
+			the system.
+
+     [ENOENT]		O_CREAT is not set and the named semaphore does not
+			exist.
+
+     [ENOSPC]		O_CREAT is specified, the file does not exist, and
+			there is insufficient space available to create the
+			semaphore.
+
+SEE ALSO
+     sem_close(2), sem_post(2), sem_trywait(2), sem_unlink(2), sem_wait(2),
+     semctl(2), semget(2), semop(2), umask(2)
+
+HISTORY
+     sem_open() is specified in the POSIX Realtime Extension
+     (1003.1b-1993/1003.1i-1995).
+
+Darwin				 June 8, 2000				Darwin

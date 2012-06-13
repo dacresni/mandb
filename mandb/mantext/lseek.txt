@@ -1,0 +1,64 @@
+LSEEK(2)		    BSD System Calls Manual		      LSEEK(2)
+
+NAME
+     lseek -- reposition read/write file offset
+
+SYNOPSIS
+     #include <unistd.h>
+
+     off_t
+     lseek(int fildes, off_t offset, int whence);
+
+DESCRIPTION
+     The lseek() function repositions the offset of the file descriptor fildes
+     to the argument offset, according to the directive whence.  The argument
+     fildes must be an open file descriptor.  Lseek() repositions the file
+     pointer fildes as follows:
+
+	   If whence is SEEK_SET, the offset is set to offset bytes.
+
+	   If whence is SEEK_CUR, the offset is set to its current location
+	   plus offset bytes.
+
+	   If whence is SEEK_END, the offset is set to the size of the file
+	   plus offset bytes.
+
+     The lseek() function allows the file offset to be set beyond the end of
+     the existing end-of-file of the file. If data is later written at this
+     point, subsequent reads of the data in the gap return bytes of zeros
+     (until data is actually written into the gap).
+
+     Some devices are incapable of seeking.  The value of the pointer associ-
+     ated with such a device is undefined.
+
+RETURN VALUES
+     Upon successful completion, lseek() returns the resulting offset location
+     as measured in bytes from the beginning of the file.  Otherwise, a value
+     of -1 is returned and errno is set to indicate the error.
+
+ERRORS
+     Lseek() will fail and the file pointer will remain unchanged if:
+
+     [EBADF]		Fildes is not an open file descriptor.
+
+     [EINVAL]		Whence is not a proper value.
+
+     [EINVAL]		The seek location (calculated from offset and whence)
+			is negative.
+
+     [EOVERFLOW]	The seek location is too large to be stored in an
+			object of type off_t.
+
+     [ESPIPE]		Fildes is associated with a pipe, socket, or FIFO.
+
+SEE ALSO
+     dup(2), open(2)
+
+BUGS
+     This document's use of whence is incorrect English, but is maintained for
+     historical reasons.
+
+STANDARDS
+     The lseek() function conforms to IEEE Std 1003.1-1988 (``POSIX.1'').
+
+4th Berkeley Distribution	April 19, 1994	     4th Berkeley Distribution

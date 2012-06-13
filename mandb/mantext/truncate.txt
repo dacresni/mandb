@@ -1,0 +1,98 @@
+TRUNCATE(2)		    BSD System Calls Manual		   TRUNCATE(2)
+
+NAME
+     ftruncate, truncate -- truncate or extend a file to a specified length
+
+SYNOPSIS
+     #include <unistd.h>
+
+     int
+     ftruncate(int fildes, off_t length);
+
+     int
+     truncate(const char *path, off_t length);
+
+DESCRIPTION
+     ftruncate() and truncate() cause the file named by path, or referenced by
+     fildes, to be truncated (or extended) to length bytes in size. If the
+     file size exceeds length, any extra data is discarded. If the file size
+     is smaller than length, the file is extended and filled with zeros to the
+     indicated length.	The ftruncate() form requires the file to be open for
+     writing.
+
+     Note: ftruncate() and truncate() do not modify the current file offset
+     for any open file descriptions associated with the file.
+
+RETURN VALUES
+     A value of 0 is returned if the call succeeds.  If the call fails a -1 is
+     returned, and the global variable errno specifies the error.
+
+ERRORS
+     The ftruncate() system call will fail if:
+
+     [EBADF]		fildes is not a valid descriptor open for writing.
+
+     [EFBIG]		The file is a regular file and length is greater than
+			the offset maximum established in the open file
+			description associated with fildes.
+
+     [EINVAL]		fildes references a socket, not a file.
+
+     [EINVAL]		fildes is not open for writing.
+
+     [EROFS]		The named file resides on a read-only file system.
+
+     The truncate() system call will fail if:
+
+     [EACCES]		Search permission is denied for a component of the
+			path prefix.
+
+     [EACCES]		The named file is not writable by the user.
+
+     [EFAULT]		Path points outside the process's allocated address
+			space.
+
+     [EISDIR]		The named file is a directory.
+
+     [ELOOP]		Too many symbolic links are encountered in translating
+			the pathname.  This is taken to be indicative of a
+			looping symbolic link.
+
+     [ENAMETOOLONG]	A component of a pathname exceeds {NAME_MAX} charac-
+			ters, or an entire path name exceeds {PATH_MAX} char-
+			acters.
+
+     [ENOENT]		The named file does not exist.
+
+     [ENOTDIR]		A component of the path prefix is not a directory.
+
+     [EROFS]		The named file resides on a read-only file system.
+
+     [ETXTBSY]		The file is a pure procedure (shared text) file that
+			is being executed.
+
+     The ftruncate() and truncate() system calls will fail if:
+
+     [EFBIG]		The length argument was greater than the maximum file
+			size.
+
+     [EINTR]		A signal is caught during execution.
+
+     [EINVAL]		The length argument is less than 0.
+
+     [EIO]		An I/O error occurred while reading from or writing to
+			a file system.
+
+SEE ALSO
+     open(2)
+
+BUGS
+     These calls should be generalized to allow ranges of bytes in a file to
+     be discarded.
+
+     Use of truncate() to extend a file is not portable.
+
+HISTORY
+     The truncate() and ftruncate() function calls appeared in 4.2BSD.
+
+4.2 Berkeley Distribution	 June 4, 1993	     4.2 Berkeley Distribution

@@ -1,0 +1,227 @@
+STAT(2) 		    BSD System Calls Manual		       STAT(2)
+
+NAME
+     fstat, fstat64, lstat, lstat64, stat, stat64 -- get file status
+
+SYNOPSIS
+     #include <sys/stat.h>
+
+     int
+     fstat(int fildes, struct stat *buf);
+
+     int
+     lstat(const char *restrict path, struct stat *restrict buf);
+
+     int
+     stat(const char *restrict path, struct stat *restrict buf);
+
+TRANSITIIONAL SYNOPSIS (NOW DEPRECATED)
+     int
+     fstat64(int fildes, struct stat64 *buf);
+
+     int
+     lstat64(const char *restrict path, struct stat64 *restrict buf);
+
+     int
+     stat64(const char *restrict path, struct stat64 *restrict buf);
+
+DESCRIPTION
+     The stat() function obtains information about the file pointed to by
+     path.  Read, write or execute permission of the named file is not
+     required, but all directories listed in the path name leading to the file
+     must be searchable.
+
+     The lstat() function is like stat() except in the case where the named
+     file is a symbolic link; lstat() returns information about the link,
+     while stat() returns information about the file the link references.
+     Unlike other filesystem objects, symbolic links may not have an owner,
+     group, access mode, times, etc.  Instead, these attributes may be taken
+     from the directory that contains the link.  In this case, the only
+     attributes returned from an lstat() that refer to the symbolic link
+     itself are the file type (S_IFLNK), size, blocks, and link count (always
+     1).
+
+     The fstat() obtains the same information about an open file known by the
+     file descriptor fildes.
+
+     The buf argument is a pointer to a stat structure as defined by
+     <sys/stat.h> and into which information is placed concerning the file.
+     When the macro _DARWIN_FEATURE_64_BIT_INODE is not defined (the ino_t
+     type is 32-bits), the stat structure is defined as:
+
+     struct stat { /* when _DARWIN_FEATURE_64_BIT_INODE is NOT defined */
+	 dev_t	  st_dev;    /* device inode resides on */
+	 ino_t	  st_ino;    /* inode's number */
+	 mode_t   st_mode;   /* inode protection mode */
+	 nlink_t  st_nlink;  /* number or hard links to the file */
+	 uid_t	  st_uid;    /* user-id of owner */
+	 gid_t	  st_gid;    /* group-id of owner */
+	 dev_t	  st_rdev;   /* device type, for special file inode */
+	 struct timespec st_atimespec;	/* time of last access */
+	 struct timespec st_mtimespec;	/* time of last data modification */
+	 struct timespec st_ctimespec;	/* time of last file status change */
+	 off_t	  st_size;   /* file size, in bytes */
+	 quad_t   st_blocks; /* blocks allocated for file */
+	 u_long   st_blksize;/* optimal file sys I/O ops blocksize */
+	 u_long   st_flags;  /* user defined flags for file */
+	 u_long   st_gen;    /* file generation number */
+     };
+
+     However, when the macro _DARWIN_FEATURE_64_BIT_INODE is defined, the
+     ino_t type will be 64-bits (force 64-bit inode mode by defining the
+     _DARWIN_USE_64_BIT_INODE macro before including header files).  This will
+     cause symbol variants of the stat family, with the $INODE64 suffixes, to
+     be automatically linked in.  In addition, the stat structure will now be
+     defined as:
+
+     struct stat { /* when _DARWIN_FEATURE_64_BIT_INODE is defined */
+	 dev_t		 st_dev;	   /* ID of device containing file */
+	 mode_t 	 st_mode;	   /* Mode of file (see below) */
+	 nlink_t	 st_nlink;	   /* Number of hard links */
+	 ino_t		 st_ino;	   /* File serial number */
+	 uid_t		 st_uid;	   /* User ID of the file */
+	 gid_t		 st_gid;	   /* Group ID of the file */
+	 dev_t		 st_rdev;	   /* Device ID */
+	 struct timespec st_atimespec;	   /* time of last access */
+	 struct timespec st_mtimespec;	   /* time of last data modification */
+	 struct timespec st_ctimespec;	   /* time of last status change */
+	 struct timespec st_birthtimespec; /* time of file creation(birth) */
+	 off_t		 st_size;	   /* file size, in bytes */
+	 blkcnt_t	 st_blocks;	   /* blocks allocated for file */
+	 blksize_t	 st_blksize;	   /* optimal blocksize for I/O */
+	 uint32_t	 st_flags;	   /* user defined flags for file */
+	 uint32_t	 st_gen;	   /* file generation number */
+	 int32_t	 st_lspare;	   /* RESERVED: DO NOT USE! */
+	 int64_t	 st_qspare[2];	   /* RESERVED: DO NOT USE! */
+     };
+
+     The time-related fields of struct stat are as follows:
+
+     st_atime	      Time when file data last accessed.  Changed by the
+		      mknod(2), utimes(2) and read(2) system calls.
+
+     st_mtime	      Time when file data last modified.  Changed by the
+		      mknod(2), utimes(2) and write(2) system calls.
+
+     st_ctime	      Time when file status was last changed (inode data modi-
+		      fication).  Changed by the chmod(2), chown(2), link(2),
+		      mknod(2), rename(2), unlink(2), utimes(2) and write(2)
+		      system calls.
+
+     st_birthtime     Time of file creation. Only set once when the file is
+		      created. This field is only available in the 64 bit
+		      inode variants. On filesystems where birthtime is not
+		      available, this field holds the ctime instead.
+
+     The size-related fields of the structures are as follows:
+
+     st_blksize     The optimal I/O block size for the file.
+
+     st_blocks	    The actual number of blocks allocated for the file in
+		    512-byte units.  As short symbolic links are stored in the
+		    inode, this number may be zero.
+
+     The status information word st_mode has the following bits:
+
+     #define S_IFMT 0170000	      /* type of file */
+     #define	    S_IFIFO  0010000  /* named pipe (fifo) */
+     #define	    S_IFCHR  0020000  /* character special */
+     #define	    S_IFDIR  0040000  /* directory */
+     #define	    S_IFBLK  0060000  /* block special */
+     #define	    S_IFREG  0100000  /* regular */
+     #define	    S_IFLNK  0120000  /* symbolic link */
+     #define	    S_IFSOCK 0140000  /* socket */
+     #define	    S_IFWHT  0160000  /* whiteout */
+     #define S_ISUID 0004000  /* set user id on execution */
+     #define S_ISGID 0002000  /* set group id on execution */
+     #define S_ISVTX 0001000  /* save swapped text even after use */
+     #define S_IRUSR 0000400  /* read permission, owner */
+     #define S_IWUSR 0000200  /* write permission, owner */
+     #define S_IXUSR 0000100  /* execute/search permission, owner */
+
+     For a list of access modes, see <sys/stat.h>, access(2) and chmod(2).
+
+     For a list of the file flags in the st_flags field, see <sys/stat.h> and
+     chflags(2).
+
+RETURN VALUES
+     Upon successful completion a value of 0 is returned.  Otherwise, a value
+     of -1 is returned and errno is set to indicate the error.
+
+COMPATIBILITY
+     Previous versions of the system used different types for the st_dev,
+     st_uid, st_gid, st_rdev, st_size, st_blksize and st_blocks fields.
+
+ERRORS
+     The fstat() system call will fail if:
+
+     [EBADF]		fildes is not a valid open file descriptor.
+
+     [EFAULT]		Sb points to an invalid address.
+
+     [EIO]		An I/O error occurs while reading from or writing to
+			the file system.
+
+     The lstat() and stat() system calls will fail if:
+
+     [EACCES]		Search permission is denied for a component of the
+			path prefix.
+
+     [EFAULT]		Sb or name points to an invalid address.
+
+     [EIO]		An I/O error occurs while reading from or writing to
+			the file system.
+
+     [ELOOP]		Too many symbolic links are encountered in translating
+			the pathname.  This is taken to be indicative of a
+			looping symbolic link.
+
+     [ENAMETOOLONG]	A component of a pathname exceeds {NAME_MAX} charac-
+			ters, or an entire path name exceeds {PATH_MAX} char-
+			acters.
+
+     [ENOENT]		The named file does not exist.
+
+     [ENOTDIR]		A component of the path prefix is not a directory.
+
+     The fstat(), lstat(), and stat() system calls will fail if:
+
+     [EOVERFLOW]	The file size in bytes or the number of blocks allo-
+			cated to the file or the file serial number cannot be
+			represented correctly in the structure pointed to by
+			buf.
+
+CAVEATS
+     The file generation number, st_gen, is only available to the super-user.
+     The fields in the stat structure currently marked st_spare1, st_spare2,
+     and st_spare3 are present in preparation for inode time stamps expanding
+     to 64 bits.  This, however, can break certain programs that depend on the
+     time stamps being contiguous (in calls to utimes(2)).
+
+TRANSITIONAL DESCRIPTION (NOW DEPRECATED)
+     The fstat64, lstat64 and stat64 routines are equivalent to their corre-
+     sponding non-64-suffixed routine, when 64-bit inodes are in effect.  They
+     were added before there was support for the symbol variants, and so are
+     now deprecated.  Instead of using these, set the _DARWIN_USE_64_BIT_INODE
+     macro before including header files to force 64-bit inode support.
+
+     The stat64 structure used by these deprecated routines is the same as the
+     stat structure when 64-bit inodes are in effect (see above).
+
+SEE ALSO
+     chflags(2), chmod(2), chown(2), utimes(2), compat(5), symlink(7)
+
+BUGS
+     Applying fstat to a socket (and thus to a pipe) returns a zero'd buffer,
+     except for the blocksize field, and a unique device and inode number.
+
+STANDARDS
+     The stat() and fstat() function calls are expected to conform to IEEE Std
+     1003.1-1988 (``POSIX.1'').
+
+HISTORY
+     An lstat() function call appeared in 4.2BSD.  The stat64(), fstat64(),
+     and lstat64() system calls first appeared in Mac OS X 10.5 (Leopard) and
+     are now deprecated in favor of the corresponding symbol variants.
+
+4th Berkeley Distribution	 May 15, 2008	     4th Berkeley Distribution

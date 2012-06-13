@@ -1,0 +1,88 @@
+GETPRIORITY(2)		    BSD System Calls Manual		GETPRIORITY(2)
+
+NAME
+     getpriority, setpriority -- get/set program scheduling priority
+
+SYNOPSIS
+     #include <sys/resource.h>
+
+     int
+     getpriority(int which, id_t who);
+
+     int
+     setpriority(int which, id_t who, int prio);
+
+DESCRIPTION
+     The scheduling priority of the process, process group, or user as indi-
+     cated by which and who is obtained with the getpriority() call and set
+     with the setpriority() call.  Additionally, the current thread can be set
+     to background state.  Which is one of PRIO_PROCESS, PRIO_PGRP, PRIO_USER,
+     or PRIO_DARWIN_THREAD, and who is interpreted relative to which (a
+     process identifier for PRIO_PROCESS, process group identifier for
+     PRIO_PGRP, and a user ID for PRIO_USER).  A zero value of who denotes the
+     current process, process group, user, thread (for PRIO_DARWIN_THREAD).
+     prio is a value in the range -20 to 20.  The default priority is 0; lower
+     priorities cause more favorable scheduling.  For PRIO_DARWIN_THREAD, prio
+     is either 0 (to remove current thread from background status) or
+     PRIO_DARWIN_BG (to set current thread into background state).
+
+     The getpriority() call returns the highest priority (lowest numerical
+     value) enjoyed by any of the specified processes or for PRIO_DAR-
+     WIN_THREAD returns 0 when current thread is not in background state or 1
+     when the current thread is in background state.  The setpriority() call
+     sets the priorities of all of the specified processes to the specified
+     value.  When setting a thread into background state the scheduling prior-
+     ity is set to lowest value, disk and network IO are throttled.  Network
+     IO will be throttled for any sockets the thread opens after going into
+     background state.	Any previously opened sockets are not affected.  Only
+     the super-user may lower priorities, but any thread can set itself into
+     background state.
+
+RETURN VALUES
+     Since getpriority() can legitimately return the value -1, it is necessary
+     to clear the external variable errno prior to the call, then check it
+     afterward to determine if a -1 is an error or a legitimate value.	The
+     setpriority() call returns 0 if there is no error, or -1 if there is.
+
+ERRORS
+     Getpriority() and setpriority() will fail if:
+
+     [EINVAL]		Which is not one of PRIO_PROCESS, PRIO_PGRP,
+			PRIO_USER, or PRIO_DARWIN_THREAD.
+
+     [EINVAL]		Who is not a valid process, process group, or user ID.
+
+     [EINVAL]		Who is not 0 when which is PRIO_DARWIN_THREAD.
+
+     [ESRCH]		No process can be located using the which and who val-
+			ues specified.
+
+     In addition to the errors indicated above, setpriority() will fail if:
+
+     [EACCES]		A non super-user attempts to lower a process priority.
+
+     [EPERM]		A process is located, but neither its effective nor
+			real user ID matches the effective user ID of the
+			caller.
+
+LEGACY SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/resource.h>
+
+     The include file <sys/types.h> is necessary.
+
+     int
+     getpriority(int which, int who);
+
+     int
+     setpriority(int which, int who, int value);
+
+     The type of who has changed.
+
+SEE ALSO
+     nice(1), fork(2), compat(5), renice(8)
+
+HISTORY
+     The getpriority() function call appeared in 4.2BSD.
+
+4th Berkeley Distribution	 June 4, 1993	     4th Berkeley Distribution

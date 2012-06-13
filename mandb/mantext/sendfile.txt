@@ -1,0 +1,127 @@
+SENDFILE(2)		    BSD System Calls Manual		   SENDFILE(2)
+
+NAME
+     sendfile -- send a file to a socket
+
+SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/socket.h>
+     #include <sys/uio.h>
+
+     int
+     sendfile(int fd, int s, off_t offset, off_t *len, struct sf_hdtr *hdtr,
+	 int flags);
+
+DESCRIPTION
+     The sendfile() system call sends a regular file specified by descriptor
+     fd out a stream socket specified by descriptor s.
+
+     The offset argument specifies where to begin in the file.	Should offset
+     fall beyond the end of file, the system will return success and report 0
+     bytes sent as described below.
+
+     The len argument is a value-result parameter, that specifies how many
+     bytes of the file should be sent and/or how many bytes have been sent.
+     Initially the value pointed to by the len argument specifies how many
+     bytes should be sent with 0 having the special meaning to send until the
+     end of file has been reached.  On return the value pointed to by the len
+     argument indicates how many bytes have been sent, except when a header or
+     trailer is specified as shown below.  The len pointer may not be NULL.
+
+     An optional header and/or trailer can be sent before and after the file
+     data by specifying a pointer to a struct sf_hdtr, which has the following
+     structure:
+
+	   struct sf_hdtr {
+		   struct iovec *headers;  /* pointer to header iovecs */
+		   int hdr_cnt; 	   /* number of header iovecs */
+		   struct iovec *trailers; /* pointer to trailer iovecs */
+		   int trl_cnt; 	   /* number of trailer iovecs */
+	   };
+
+     The headers and trailers pointers, if non-NULL, point to arrays of struct
+     iovec structures.	See the writev() system call for information on the
+     iovec structure.  The number of iovecs in these arrays is specified by
+     hdr_cnt and trl_cnt.
+
+     When a header or trailer is specified the value of len returned will
+     include the size of header or trailer sent. The user should provide suf-
+     ficiently large value of len as argument including the size of header or
+     trailer, otherwise only part of file data will be sent following the
+     header.
+
+     The flags parameter is reserved for future expansion and must be set to
+     0. Any other value will cause sendfile() to return EINVAL.
+
+     When using a socket marked for non-blocking I/O, sendfile() may send
+     fewer bytes than requested.  In this case, the number of bytes success-
+     fully sent is returned in the via the len parameters and the error EAGAIN
+     is returned.
+
+     When a signal causes sendfile() to return the error EINTR, the len argu-
+     ment may return 0 without necessarily meaning the end of file has been
+     reached as the signal may have been caught before any data was sent.
+
+IMPLEMENTATION NOTES
+     The Mac OS X implementation of sendfile() uses 64 bits types for size and
+     offset parameters so there is no need for a 64 bits version sendfile64()
+     as found on some other operating systems.
+
+RETURN VALUES
+     The sendfile() function returns the value 0 if successful; otherwise the
+     value -1 is returned and the global variable errno is set to indicate the
+     error.
+
+     The number of bytes sent is returned via the parameter len.  A value of 0
+     means the end of the file specified by descriptor fd has been reached or
+     that the value passed in offset falls beyond the end of file.
+
+ERRORS
+     [EAGAIN]		The socket is marked for non-blocking I/O and not all
+			data was sent due to the socket buffer being full.  If
+			specified, the number of bytes successfully sent will
+			be returned in *len.
+
+     [EBADF]		The fd argument is not a valid file descriptor.
+
+     [ENOTSUP]		The fd argument does not refer to a regular file.
+
+     [EBADF]		The s argument is not a valid socket descriptor.
+
+     [ENOTSOCK] 	The s argument does not refer stream oriented socket.
+
+     [EFAULT]		An invalid address was specified for an argument.
+
+     [EINTR]		A signal interrupted sendfile() before it could be
+			completed.  If specified, the number of bytes success-
+			fully sent will be returned in *len.
+
+     [EINVAL]		The offset argument is negative.
+
+     [EINVAL]		The len argument is NULL.
+
+     [EINVAL]		The flags argument is not set to 0.
+
+     [EIO]		An error occurred while reading from fd.
+
+     [ENOTCONN] 	The s argument points to an unconnected socket.
+
+     [ENOTSOCK] 	The s argument is not a socket.
+
+     [EOPNOTSUPP]	The file system for descriptor fd does not support
+			sendfile().
+
+     [EPIPE]		The socket peer has closed the connection.
+
+SEE ALSO
+     open(2), send(2), socket(2), writev(2)
+
+HISTORY
+     The sendfile() system call first appeared in Darwin 9.0 (Mac OS X version
+     10.5) .
+
+AUTHORS
+     This manual page is based on the FreeBSD version written by David G.
+     Lawrence <dg@dglawrence.com>
+
+Mac OS X			March 31, 2006			      Mac OS X

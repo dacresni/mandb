@@ -1,0 +1,101 @@
+GETDIRENTRIES(2)	    BSD System Calls Manual	      GETDIRENTRIES(2)
+
+NAME
+     getdirentries -- get directory entries in a filesystem independent format
+
+SYNOPSIS
+     #include <dirent.h>
+     #include <sys/types.h>
+     #include <sys/dirent.h>
+
+     int
+     getdirentries(int fd, char *buf, int nbytes, long *basep);
+
+DESCRIPTION
+     Getdirentries() reads directory entries from the directory referenced by
+     the file descriptor fd into the buffer pointed to by buf, in a filesystem
+     independent format.  Up to nbytes of data will be transferred.  Nbytes
+     must be greater than or equal to the block size associated with the file,
+     see stat(2).  Some filesystems may not support getdirentries() with
+     buffers smaller than this size.
+
+     The data in the buffer is a series of dirent structures each containing
+     the following entries:
+
+	   u_int32_t	   d_fileno;		 /* file number of entry */
+	   u_int16_t	   d_reclen;		 /* length of this record */
+	   u_int8_t	   d_type;		 /* file type, see below */
+	   u_int8_t	   d_namlen;		 /* length of string in d_name */
+	   char 	   d_name[MAXNAMELEN + 1]; /* see below */
+
+     The d_fileno entry is a number which is unique for each distinct file in
+     the filesystem.  Files that are linked by hard links (see link(2)) have
+     the same d_fileno.  Users of getdirentries() should skip entries with
+     d_fileno = 0, as such entries represent files which have been deleted but
+     not yet removed from the directory entry.	The d_reclen entry is the
+     length, in bytes, of the directory record.  The d_name entry contains a
+     null terminated file name.  The d_namlen entry specifies the length of
+     the file name excluding the null byte.  Thus the actual size of d_name
+     may vary from 1 to MAXNAMELEN + 1.  d_type is a integer representing the
+     type of the directory entry.  The following types are defined in
+     <sys/dirent.h>:
+
+	   #define DT_UNKNOWN	    0
+	   #define DT_FIFO	    1
+	   #define DT_CHR	    2
+	   #define DT_DIR	    4
+	   #define DT_BLK	    6
+	   #define DT_REG	    8
+	   #define DT_LNK	   10
+	   #define DT_SOCK	   12
+	   #define DT_WHT	   14
+
+     Entries may be separated by extra space.  The d_reclen entry may be used
+     as an offset from the start of a dirent structure to the next structure,
+     if any.
+
+     The actual number of bytes transferred is returned.  The current position
+     pointer associated with fd is set to point to the next block of entries.
+     The pointer may not advance by the number of bytes returned by
+     getdirentries().  A value of zero is returned when the end of the direc-
+     tory has been reached.
+
+     Getdirentries() writes the position of the block read into the location
+     pointed to by basep.  Alternatively, the current position pointer may be
+     set and retrieved by lseek(2).  The current position pointer should only
+     be set to a value returned by lseek(2), a value returned in the location
+     pointed to by basep, or zero.
+
+NOTES
+     getdirentries() should rarely be used directly; instead, opendir(3) and
+     readdir(3) should be used.
+
+     As of Mac OS X 10.6, getdirentries() is deprecated, and it is recommended
+     that applications use readdir(3) rather than using getdirentries()
+     directly.	Due to limitations with the system call, getdirentries() will
+     not work with 64-bit inodes; in order to use getdirentries(),
+     _DARWIN_NO_64_BIT_INODE must be defined.
+
+RETURN VALUES
+     If successful, the number of bytes actually transferred is returned.
+     Otherwise, -1 is returned and the global variable errno is set to indi-
+     cate the error.
+
+ERRORS
+     Getdirentries() will fail if:
+
+     [EBADF]		fd is not a valid file descriptor open for reading.
+
+     [EFAULT]		Either buf or basep point outside the allocated
+			address space.
+
+     [EIO]		An I/O error occurred while reading from or writing to
+			the file system.
+
+SEE ALSO
+     lseek(2), open(2), opendir(3), readdir(3)
+
+HISTORY
+     The getdirentries() function first appeared in 4.4BSD.
+
+BSD				 June 9, 1993				   BSD

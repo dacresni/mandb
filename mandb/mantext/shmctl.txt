@@ -1,0 +1,125 @@
+SHMCTL(2)		    BSD System Calls Manual		     SHMCTL(2)
+
+NAME
+     shmctl -- shared memory control operations
+
+SYNOPSIS
+     #include <sys/shm.h>
+
+     int
+     shmctl(int shmid, int cmd, struct shmid_ds *buf);
+
+DESCRIPTION
+     The shmctl() system call performs some control operations on the shared
+     memory area specified by shmid.  Each shared memory segment has a data
+     structure associated with it, parts of which may be altered by shmctl()
+     and parts of which determine the actions of shmctl().  This structure is
+     defined as follows in <sys/shm.h>:
+
+     struct shmid_ds {
+	 struct ipc_perm  shm_perm;	/* operation permissions */
+	 int		  shm_segsz;	/* size of segment in bytes */
+	 pid_t		  shm_lpid;	/* pid of last shm op */
+	 pid_t		  shm_cpid;	/* pid of creator */
+	 short		  shm_nattch;	/* # of current attaches */
+	 time_t 	  shm_atime;	/* last shmat() time*/
+	 time_t 	  shm_dtime;	/* last shmdt() time */
+	 time_t 	  shm_ctime;	/* last change by shmctl() */
+	 void		 *shm_internal; /* sysv stupidity */
+     };
+
+     The ipc_perm structure used inside the shmid_ds structure is defined in
+     <sys/ipc.h> and looks like this:
+
+     struct ipc_perm {
+       uid_t	       uid;   /* Owner's user ID */
+       gid_t	       gid;   /* Owner's group ID */
+       uid_t	       cuid;  /* Creator's user ID */
+       gid_t	       cgid;  /* Creator's group ID */
+       mode_t	       mode;  /* r/w permission (see chmod(2)) */
+       unsigned short  _seq;  /* Reserved for internal use */
+       key_t	       _key;  /* Reserved for internal use */
+     };
+
+     The operation to be performed by shmctl() is specified in cmd and is one
+     of:
+
+     IPC_STAT	Gather information about the shared memory segment and place
+		it in the structure pointed to by buf.
+
+     IPC_SET	Set the value of the shm_perm.uid, shm_perm.gid and
+		shm_perm.mode fields in the structure associated with shmid.
+		The values are taken from the corresponding fields in the
+		structure pointed to by buf.  This operation can only be exe-
+		cuted by the super-user, or a process that has an effective
+		user id equal to either shm_perm.cuid or shm_perm.uid in the
+		data structure associated with the shared memory segment.
+
+     IPC_RMID	Remove the shared memory segment specified by shmid and
+		destroy the data associated with it. Only the super-user or a
+		process with an effective uid equal to the shm_perm.cuid or
+		shm_perm.uid values in the data structure associated with the
+		queue can do this.
+
+     The read and write permissions on a shared memory identifier are deter-
+     mined by the shm_perm.mode field in the same way as is done with files
+     (see chmod(2) ), but the effective uid can match either the shm_perm.cuid
+     field or the shm_perm.uid field, and the effective gid can match either
+     shm_perm.cgid or shm_perm.gid.
+
+RETURN VALUES
+     Upon successful completion, a value of 0 is returned.  Otherwise, -1 is
+     returned and the global variable errno is set to indicate the error.
+
+ERRORS
+     shmctl() will fail if:
+
+     [EACCES]		The command is IPC_STAT and the caller has no read
+			permission for this shared memory segment.
+
+     [EFAULT]		buf specifies an invalid address.
+
+     [EINVAL]		shmid is not a valid shared memory segment identifier.
+			cmd is not a valid command.
+
+     [EPERM]		cmd is equal to IPC_SET or IPC_RMID and the caller is
+			not the super-user,nor does the effective uid match
+			either the shm_perm.uid or shm_perm.cuid fields of the
+			data structure associated with the shared memory seg-
+			ment.  An attempt is made to increase the value of
+			shm_qbytes through IPC_SET but the caller is not the
+			super-user.
+
+LEGACY SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/ipc.h>
+     #include <sys/shm.h>
+
+     All of these include files are necessary.
+
+LEGACY DESCRIPTION
+     The ipc_perm structure used inside the shmid_ds structure, as defined in
+     <sys/ipc.h>, looks like this:
+
+     struct ipc_perm {
+	 __uint16_t cuid;  /* Creator's user id */
+	 __uint16_t cgid;  /* Creator's group id */
+	 __uint16_t uid;   /* Owner's user id */
+	 __uint16_t gid;   /* Owner's group id */
+	 mode_t     mode;  /* r/w permission (see chmod(2)) */
+	 __uint16_t seq;   /* Reserved for internal use */
+	 key_t	    key;   /* Reserved for internal use */
+     };
+
+     This structure is maintained for binary backward compatibility with pre-
+     vious versions of the interface.  New code should not use this interface,
+     because ID values may be truncated.
+
+     Specifically, LEGACY mode limits the allowable uid/gid ranges to 0-32767.
+     If the user has a UID that is out of this range (e.g., "nobody"), soft-
+     ware using the LEGACY API will not behave as expected.
+
+SEE ALSO
+     shmat(2), shmdt(2), shmget(2), compat(5)
+
+BSD				August 17, 1995 			   BSD

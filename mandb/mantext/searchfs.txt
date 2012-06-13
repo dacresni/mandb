@@ -1,0 +1,513 @@
+SEARCHFS(2)		    BSD System Calls Manual		   SEARCHFS(2)
+
+NAME
+     searchfs -- search a volume quickly
+
+SYNOPSIS
+     #include <sys/attr.h>
+     #include <unistd.h>
+
+     int
+     searchfs(const char* path, struct fssearchblock* searchBlock,
+	 unsigned int* numMatches, unsigned int scriptCode,
+	 unsigned int options, struct searchstate* state);
+
+DESCRIPTION
+     The searchfs() function searches the volume (that is, mounted file sys-
+     tem) specified by path for file system objects matching the criteria
+     specified by searchBlock, scriptCode, and options.  The numMatches param-
+     eter returns the number of matching file system objects found.  The func-
+     tion also returns attributes of those file system objects in a buffer
+     specified by searchBlock.	The searchState parameter allows you search
+     the volume using multiple calls to searchfs(), resuming the search where
+     it left off.  The routine will only return objects to which you have
+     access (that is, you have execute permissions on the directories leading
+     to this object from the root).
+
+     The path parameter must reference a valid file system object on the vol-
+     ume to be searched.  Typically the path is to the volume's root direc-
+     tory.  The entire volume is always searched.  All directories listed in
+     the path name leading to this object must be searchable.
+
+     The searchBlock parameter is a pointer to an fssearchblock structure, as
+     defined by <sys/attr.h> (shown below).  You are responsible for filling
+     out all fields of this structure before calling the function.
+
+     struct fssearchblock {
+	 struct attrlist *   returnattrs;
+	 void * 	     returnbuffer;
+	 size_t 	     returnbuffersize;
+	 unsigned int	     maxmatches;
+	 struct timeval      timelimit;
+	 void * 	     searchparams1;
+	 size_t 	     sizeofsearchparams1;
+	 void * 	     searchparams2;
+	 size_t 	     sizeofsearchparams2;
+	 struct attrlist     searchattrs;
+     };
+
+     For information about the attrlist structure, see the discussion of
+     getattrlist(2).
+
+     The fields of the fssearchblock structure are defined as follows.
+
+     returnattrs	  searchfs() can return arbitrary attributes of the
+			  file system objects that meet the designated search
+			  criteria passed in via searchparams1 and
+			  searchparams2. This field must point to an attrlist
+			  structure that specifies the attributes that you
+			  want returned.  To request an attribute you must set
+			  the corresponding bit in the appropriate attrgroup_t
+			  field of the attrlist structure.  You are responsi-
+			  ble for filling out all fields of this structure
+			  before calling the function.	You must not request
+			  volume attributes.
+
+     returnbuffer	  searchfs() places attributes of the matching file
+			  system objects into this returned attributes buffer.
+			  The attributes for any given object are grouped
+			  together and packed in exactly the same way as they
+			  would be returned from getdirentriesattr(2).	The
+			  initial contents of this buffer are ignored.
+
+     returnbuffersize	  Set this field to the size, in bytes, of the buffer
+			  pointed to by returnbuffer.
+
+     maxmatches 	  Specifies the maximum number of matches that you
+			  want this call to searchfs() to return.
+
+     timelimit		  Specifies the maximum time that you want this call
+			  to searchfs() to run.
+
+			  If you're implementing a volume format, you should
+			  impose your own internal limit on the duration of
+			  this call to prevent a malicious user program from
+			  monopolizing kernel resources.
+
+     searchparams1	  Specifies the lower bound of the search criteria.
+			  This is discussed in detail below.  You must place
+			  attribute values into the buffer in the same way as
+			  they would be returned by getattrlist(2), where the
+			  searchattrs field determines the exact layout of the
+			  attribute values.
+
+     sizeofsearchparams1  Set this field to the size, in bytes, of the buffer
+			  pointed to by searchparams1.
+
+     searchparams2	  Specifies the upper bound of the search criteria.
+			  This is discussed in detail below.  You must place
+			  attribute values into the buffer in the same way as
+			  they would be returned by getattrlist(2), where the
+			  searchattrs field determines the exact layout of the
+			  attribute values.
+
+     sizeofsearchparams2  Set this field to the size, in bytes, of the buffer
+			  pointed to by searchparams2.
+
+     searchattrs	  Specifies the attributes that you want you use for
+			  your search criteria.  You are responsible for fill-
+			  ing out all fields of this structure before calling
+			  the function.  To search for an attribute you must
+			  set the corresponding bit in the appropriate
+			  attrgroup_t field of the attrlist structure, and
+			  place the appropriate values into the searchparam1
+			  and searchparam2 buffers.  The attributes specified
+			  here determine the format of those buffers.  This is
+			  discussed in detail below.
+
+     The numMatches parameter points to an unsigned int variable.  The initial
+     value of this variable is ignored.  On return, this variable contains the
+     number of matching file system objects found.  The is always less than or
+     equal to the maxmatches field of the searchBlock parameter.  The
+     attributes for the matching objects have been placed into the returned
+     attributes buffer.
+
+     The scriptCode parameter is currently ignored.  You should always pass in
+     the value 0x08000103, which corresponds to the UTF-8 text encoding value
+     defined by <CarbonCore/TextCommon.h>.
+
+     The options parameter is a bit set that controls the behaviour of
+     searchfs().  The following option bits are defined.
+
+     SRCHFS_START	       If this bit is set, searchfs() will ignore the
+			       state parameter and start a new search.	Other-
+			       wise searchfs() assumes that searchstate is
+			       valid and attempts to resume a previous search
+			       based on that state.
+
+     SRCHFS_MATCHPARTIALNAMES  If this bit is set, searchfs() will consider
+			       substrings to be successful matches when evalu-
+			       ating the ATTR_CMN_NAME attribute.
+
+     SRCHFS_MATCHDIRS	       If this bit is set, searchfs() will search for
+			       directories that match the search criteria.  To
+			       get meaningful results you must specify either
+			       this bit or SRCHFS_MATCHFILES, or both.
+
+     SRCHFS_MATCHFILES	       If this bit is set, searchfs() will search for
+			       files that match the search criteria.  To get
+			       meaningful results you must specify either this
+			       bit or SRCHFS_MATCHDIRS, or both.
+
+     SRCHFS_SKIPLINKS	       If this bit is set, searchfs() will only return
+			       one reference for a hard linked file, rather
+			       than a reference for each hard link to the
+			       file.
+
+			       This option is not recommended for general
+			       development.  Its primary client is the
+			       quotacheck(2) utility.  Note that not all
+			       filesystems that support searchfs() support
+			       this option and may return EINVAL if it is
+			       requested.
+
+			       This option is privileged (the caller's effec-
+			       tive UID must be 0) and cannot be used if you
+			       request the ATTR_CMN_NAME or ATTR_CMN_PAROBJID
+			       attributes.
+
+			       Introduced with Darwin 7.0 (Mac OS X version
+			       10.3).
+
+     SRCHFS_SKIPINVISIBLE      If this bit is set, searchfs() will not match
+			       any invisible file system objects (that is,
+			       objects whose ATTR_CMN_FNDRINFO attribute has
+			       bit 6 set in the ninth byte) or any objects
+			       within invisible directories.
+
+			       Introduced with Darwin 7.0 (Mac OS X version
+			       10.3).
+
+     SRCHFS_SKIPPACKAGES       If this bit is set, searchfs() will not match
+			       any file system objects that are inside a pack-
+			       age.  A package is defined as a directory whose
+			       extension matches one of the extensions that
+			       are configured into the kernel by Launch Ser-
+			       vices.
+
+			       Introduced with Darwin 7.0 (Mac OS X version
+			       10.3).
+
+     SRCHFS_SKIPINAPPROPRIATE  If this bit is set, searchfs() will not match
+			       any file system objects that are within an
+			       inappropriate directory.  The current list of
+			       inappropriate directories contains one item:
+			       /System.
+
+			       Introduced with Darwin 7.0 (Mac OS X version
+			       10.3).
+
+     SRCHFS_NEGATEPARAMS       If this bit is set, searchfs() will return all
+			       the file system objects that do not match the
+			       search criteria.
+
+			       Introduced with Darwin 7.0 (Mac OS X version
+			       10.3).
+
+     The state parameter is a pointer to an opaque data structure that
+     searchfs() uses to maintain the state of a search between successive
+     calls.  In your first call to searchfs(), you specify the SRCHFS_START
+     flag in the options parameter.  This tells searchfs() that the search
+     state is invalid and that it should start a new search.  When this call
+     completes, it may have only returned partial results; in that case, it
+     will have updated the structure pointed to by state.  If you call
+     searchfs() again, this time without specifying the SRCHFS_START flag in
+     the options parameter, it will resume the search where it left off, using
+     the search state that it previously stored in the state structure.  You
+     do not need to explicitly dispose of this state.
+
+     The searchfs() function returns significant errors in the followings
+     cases.
+
+     o	 If it has found as many objects as you requested in the maxmatches
+	 field of the searchBlock parameter, it will return EAGAIN.
+
+     o	 If there is not enough space in the returned attributes buffer for
+	 the first match, it will return ENOBUFS.  You should allocate a
+	 larger returned attributes buffer and try again.  numMatches will be
+	 zero in this case.
+
+     o	 If the timeout expires it will return EAGAIN.
+
+     o	 If you attempt to resume a search (that is, SRCHFS_START is not spec-
+	 ified in the options parameter) and the catalog has changed since the
+	 last search, the function will return EBUSY.  You must start your
+	 search again from the beginning.
+
+     If searchfs() returns EAGAIN, the value in numMatches may be greater than
+     zero.  This is known as a partial result.	You should be sure to process
+     these matches before calling searchfs() again.
+
+SEARCH CRITERIA
+     You specify the search criteria using a combination of the searchattrs,
+     searchparams1, sizeofsearchparams1, searchparams2, and
+     sizeofsearchparams2 fields of the searchBlock parameter, and various
+     flags in the options parameter.  The searchattrs field determines the
+     attributes considered when comparing a file system object to the search
+     criteria.	You can specify that an attribute should be considered by set-
+     ting the corresponding bit in the appropriate attrgroup_t field of the
+     attrlist structure.  See the discussion of getattrlist(2) for a detailed
+     description of this structure.
+
+     The searchparams1, sizeofsearchparams1, searchparams2, and
+     sizeofsearchparams2 fields specify the attribute values that must be
+     matched.  The format of each of these buffers is determined by the
+     attributes that you're searching for.  The values are packed in exactly
+     the same way as they would be returned from getattrlist(2), including the
+     leading u_int32_t length value.  Note that the size of these buffers must
+     be bounded by SEARCHFS_MAX_SEARCHPARMS bytes, which is defined in
+     <sys/attr.h>.
+
+     The attribute values in the first and second search buffers form a lower
+     and upper bound for the search, respectively.  These have different mean-
+     ings depending on the type of attribute.
+
+     o	 For string attributes (specifically ATTR_CMN_NAME, the object name),
+	 the value in the first search buffer is significant and the value in
+	 the second search buffer is ignored.  The string comparison is either
+	 an exact match or a substring match depending on the
+	 SRCHFS_MATCHPARTIALNAMES flag in the options parameter.
+
+     o	 For structured attributes (specifically ATTR_CMN_FNDRINFO, the Finder
+	 information), the value from the file system object is masked (logi-
+	 cal AND) with the value in the second search buffer and then com-
+	 pared, byte for byte, against the value in the first search buffer.
+	 If it is equal, the object is a match.
+
+     o	 For scalar attributes (all other attributes, for example,
+	 ATTR_CMN_MODTIME, the modification date), the values in the first and
+	 second search buffers are literally a lower and upper bound.  An
+	 object matches the criteria if its value is greater than or equal to
+	 the value in the first buffer and less than or equal to the value in
+	 the second.
+
+RETURN VALUES
+     Upon successful completion, a value of 0 is returned.  This means that
+     the entire volume has been searched and all matches returned.  Otherwise,
+     a value of -1 is returned and errno is set to indicate the error.
+
+     See the discussion of the EAGAIN, ENOBUFS, and EBUSY error codes above.
+
+COMPATIBILITY
+     Not all volumes support searchfs().  You can test whether a volume sup-
+     ports searchfs() by using getattrlist(2) to get the volume capabilities
+     attribute ATTR_VOL_CAPABILITIES, and then testing the
+     VOL_CAP_INT_SEARCHFS flag.
+
+     The searchfs() function has been undocumented for more than two years.
+     In that time a number of volume format implementations have been created
+     without a proper specification for the behaviour of this routine.	You
+     may encounter volume format implementations with slightly different be-
+     haviour than what is described here.  Your program is expected to be tol-
+     erant of this variant behaviour.
+
+     If you're implementing a volume format that supports searchfs(), you
+     should be careful to support the behaviour specified by this document.
+
+     A bug in systems prior to Darwin 7.0 (Mac OS X version 10.3) makes
+     searching for the ATTR_CMN_BKUPTIME attribute tricky.  The bug causes the
+     attribute to consume two items in the search attribute buffers, the first
+     in the proper place and the second between ATTR_CMN_FNDRINFO and
+     ATTR_CMN_OWNERID.
+
+ERRORS
+     searchfs() will fail if:
+
+     [ENOTSUP]		The volume does not support searchfs().
+
+     [ENOTDIR]		A component of the path prefix is not a directory.
+
+     [ENAMETOOLONG]	A component of a path name exceeded NAME_MAX charac-
+			ters, or an entire path name exceeded PATH_MAX charac-
+			ters.
+
+     [ENOENT]		The file system object does not exist.
+
+     [EACCES]		Search permission is denied for a component of the
+			path prefix.
+
+     [ELOOP]		Too many symbolic links were encountered in translat-
+			ing the pathname.
+
+     [EFAULT]		One of the pointer parameters points to an invalid
+			address.
+
+     [EINVAL]		The options parameter contains an invalid flag or
+			sizeofsearchparams1/2 is greater than
+			SEARCHFS_MAX_SEARCHPARMS (see attr.h).	Additionally,
+			filesystems that do not support SRCHFS_SKIPLINKS may
+			return EINVAL if this search option is requested.
+
+     [EAGAIN]		The search terminated with partial results, either
+			because numMatches has hit the limit specified by
+			maxmatches or because the timeout expired.  Process
+			the matches returned so far and then call searchfs()
+			again to look for more.
+
+     [ENOBUFS]		The returned attributes buffer is too small for the
+			first match.  You should allocate a larger returned
+			attributes buffer and try again.  numMatches will be
+			zero in this case.
+
+     [EBUSY]		The search could not be resumed because the volume has
+			changed.
+
+     [EIO]		An I/O error occurred while reading from or writing to
+			the file system.
+
+CAVEATS
+     The list of searchable attributes currently includes:
+
+     ATTR_CMN_NAME
+     ATTR_CMN_OBJID
+     ATTR_CMN_PAROBJID
+     ATTR_CMN_CRTIME
+     ATTR_CMN_MODTIME
+     ATTR_CMN_CHGTIME
+     ATTR_CMN_ACCTIME
+     ATTR_CMN_BKUPTIME
+     ATTR_CMN_FNDRINFO
+     ATTR_CMN_BKUPTIME
+     ATTR_CMN_OWNERID
+     ATTR_CMN_GRPID
+     ATTR_CMN_ACCESSMASK
+
+     ATTR_DIR_ENTRYCOUNT
+
+     ATTR_FILE_DATALENGTH
+     ATTR_FILE_DATAALLOCSIZE
+     ATTR_FILE_RSRCLENGTH
+     ATTR_FILE_RSRCALLOCSIZE
+
+EXAMPLES
+     The following code searches a volume for files of the specified type and
+     creator.
+
+     #include <assert.h>
+     #include <stdio.h>
+     #include <stddef.h>
+     #include <string.h>
+     #include <sys/attr.h>
+     #include <sys/errno.h>
+     #include <unistd.h>
+
+     typedef struct attrlist	     attrlist_t;
+     typedef struct fssearchblock    fssearchblock_t;
+     typedef struct searchstate      searchstate_t;
+
+     struct SearchAttrBuf {
+	 u_int32_t	 length;
+	 char		 finderInfo[32];
+     };
+     typedef struct SearchAttrBuf SearchAttrBuf;
+
+     struct ResultAttrBuf {
+	 u_int32_t	 length;
+	 attrreference_t name;
+	 fsobj_id_t	 parObjID;
+     };
+     typedef struct ResultAttrBuf ResultAttrBuf;
+
+     enum {
+	 kMatchesPerCall = 16
+     };
+
+     static int SearchFSDemo(
+	 const char *volPath,
+	 const char *type,
+	 const char *creator
+     )
+     {
+	 int		 err;
+	 fssearchblock_t searchBlock;
+	 SearchAttrBuf	 lower;
+	 SearchAttrBuf	 upper;
+	 static const unsigned char kAllOnes[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
+	 unsigned int	 matchCount;
+	 unsigned int	 matchIndex;
+	 unsigned int	 options;
+	 searchstate_t	 state;
+	 ResultAttrBuf * thisEntry;
+	 attrlist_t	 returnAttrList;
+	 char		 resultAttrBuf[  kMatchesPerCall
+				       * (sizeof(ResultAttrBuf) + 64)];
+
+	 // resultAttrBuf is big enough for kMatchesPerCall entries,
+	 // assuming that the average name length is less than 64.
+
+	 assert(strlen(type)	== 4);
+	 assert(strlen(creator) == 4);
+
+	 memset(&searchBlock, 0, sizeof(searchBlock));
+	 searchBlock.searchattrs.bitmapcount = ATTR_BIT_MAP_COUNT;
+	 searchBlock.searchattrs.commonattr  = ATTR_CMN_FNDRINFO;
+
+	 memset(&lower, 0, sizeof(lower));
+	 memset(&upper, 0, sizeof(upper));
+	 lower.length = sizeof(lower);
+	 upper.length = sizeof(upper);
+	 memcpy(&lower.finderInfo[0], type,	4);
+	 memcpy(&lower.finderInfo[4], creator,	4);
+	 memcpy(&upper.finderInfo[0], kAllOnes, 4);
+	 memcpy(&upper.finderInfo[4], kAllOnes, 4);
+	 searchBlock.searchparams1	 = &lower;
+	 searchBlock.sizeofsearchparams1 = sizeof(lower);
+	 searchBlock.searchparams2	 = &upper;
+	 searchBlock.sizeofsearchparams2 = sizeof(lower);
+
+	 searchBlock.timelimit.tv_sec  = 0;
+	 searchBlock.timelimit.tv_usec = 100 * 1000;
+
+	 searchBlock.maxmatches = kMatchesPerCall;
+
+	 memset(&returnAttrList, 0, sizeof(returnAttrList));
+	 returnAttrList.bitmapcount = ATTR_BIT_MAP_COUNT;
+	 returnAttrList.commonattr  = ATTR_CMN_NAME | ATTR_CMN_PAROBJID;
+
+	 searchBlock.returnattrs = &returnAttrList;
+	 searchBlock.returnbuffer = resultAttrBuf;
+	 searchBlock.returnbuffersize = sizeof(resultAttrBuf);
+
+	 options = SRCHFS_START | SRCHFS_MATCHFILES;
+
+	 do {
+	     err = searchfs(
+		 volPath,
+		 &searchBlock,
+		 &matchCount,
+		 0x08000103,
+		 options,
+		 &state
+	     );
+	     if (err != 0) {
+		 err = errno;
+	     }
+	     if ( (err == 0) || (err == EAGAIN) ) {
+		 thisEntry = (ResultAttrBuf *) resultAttrBuf;
+
+		 for (matchIndex = 0; matchIndex < matchCount; matchIndex++) {
+		     printf("%08x ", thisEntry->parObjID.fid_objno);
+		     printf(
+			 "%s\n",
+			 ((char *) &thisEntry->name)
+			     + thisEntry->name.attr_dataoffset
+		     );
+		     // Advance to the next entry.
+		     ((char *) thisEntry) += thisEntry->length;
+		 }
+	     }
+
+	     options &= ~SRCHFS_START;
+	 } while (err == EAGAIN);
+
+	 return err;
+     }
+
+SEE ALSO
+     getattrlist(2)
+
+HISTORY
+     A searchfs() function call appeared in Darwin 1.3.1 (Mac OS X version
+     10.0).
+
+Darwin			       October 13, 2008 			Darwin

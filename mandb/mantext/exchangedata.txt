@@ -1,0 +1,98 @@
+EXCHANGEDATA(2) 	    BSD System Calls Manual	       EXCHANGEDATA(2)
+
+NAME
+     exchangedata -- atomically exchange data between two files
+
+SYNOPSIS
+     #include <unistd.h>
+
+     int
+     exchangedata(const char * path1, const char * path2,
+	 unsigned long options);
+
+DESCRIPTION
+     The exchangedata() function swaps the contents of the files referenced by
+     path1 and path2 in an atomic fashion.  That is, all concurrent processes
+     will either see the pre-exchanged state or the post-exchanged state; they
+     can never see the files in an inconsistent state.	The data in all forks
+     is swapped in this way.  The options parameter lets you control specific
+     aspects of the function's behaviour.
+
+     Open file descriptors follow the swapped data.  Thus, a descriptor that
+     previously referenced path1 will now reference the data that's accessible
+     via path2, and vice versa.
+
+     In general, the file attributes (metadata) are not exchanged.  Specifi-
+     cally, the object identifier attributes (that is, the ATTR_CMN_OBJID and
+     ATTR_CMN_OBJPERMANENTID attributes as defined by the getattrlist(2) func-
+     tion) are not swapped.  An exception to this general rule is that the
+     modification time attribute ( ATTR_CMN_MODTIME ) is swapped.
+
+     When combined, these features allow you to implement a 'safe save' func-
+     tion that does not break references to the file (for example, aliases).
+     You first save the new contents to a temporary file and then exchange the
+     data of the original file and the temporary.  Programs that reference the
+     file via an object identifier will continue to reference the original
+     file, but now it has the new data.
+
+     The path1 and path2 parameters must both reference valid files.  All
+     directories listed in the path names leading to these files must be
+     searchable.  You must have write access to the files.
+
+     The options parameter is a bit set that controls the behaviour of
+     exchangedata().  The following option bits are defined.
+
+     FSOPT_NOFOLLOW  If this bit is set, exchangedata() will not follow a sym-
+		     link if it occurs as the last component of path1 or
+		     path2.
+
+RETURN VALUES
+     Upon successful completion a value of 0 is returned.  Otherwise, a value
+     of -1 is returned and errno is set to indicate the error.
+
+COMPATIBILITY
+     Not all volumes support exchangedata().  You can test whether a volume
+     supports exchangedata() by using getattrlist(2) to get the volume capa-
+     bilities attribute ATTR_VOL_CAPABILITIES, and then testing the
+     VOL_CAP_INT_EXCHANGEDATA flag.
+
+ERRORS
+     exchangedata() will fail if:
+
+     [ENOTSUP]		The volume does not support exchangedata().
+
+     [ENOTDIR]		A component of the path prefix is not a directory.
+
+     [ENAMETOOLONG]	A component of a path name exceeded NAME_MAX charac-
+			ters, or an entire path name exceeded PATH_MAX charac-
+			ters.
+
+     [ENOENT]		Either file does not exist.
+
+     [EACCES]		Search permission is denied for a component of the
+			path prefix.
+
+     [ELOOP]		Too many symbolic links were encountered in translat-
+			ing the pathname.
+
+     [EFAULT]		path1 or path2 points to an invalid address.
+
+     [EXDEV]		path1 and path2 are on different volumes (mounted file
+			systems).
+
+     [EINVAL]		path1 or path2 reference the same file.
+
+     [EINVAL]		You try to exchange something other than a regular
+			file (for example, a directory).
+
+     [EIO]		An I/O error occurred while reading from or writing to
+			the file system.
+
+SEE ALSO
+     getattrlist(2)
+
+HISTORY
+     A exchangedata() function call appeared in Darwin 1.3.1 (Mac OS X version
+     10.0).
+
+Darwin			       December 15, 2003			Darwin

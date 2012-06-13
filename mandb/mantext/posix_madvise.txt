@@ -1,0 +1,115 @@
+MADVISE(2)		    BSD System Calls Manual		    MADVISE(2)
+
+NAME
+     madvise, posix_madvise -- give advice about use of memory
+
+SYNOPSIS
+     #include <sys/mman.h>
+
+     int
+     madvise(void *addr, size_t len, int advice);
+
+     int
+     posix_madvise(void *addr, size_t len, int advice);
+
+DESCRIPTION
+     The madvise() system call allows a process that has knowledge of its mem-
+     ory behavior to describe it to the system.  The advice passed in may be
+     used by the system to alter its virtual memory paging strategy.  This
+     advice may improve application and system performance.  The behavior
+     specified in advice can only be one of the following values:
+
+     MADV_NORMAL      Indicates that the application has no advice to give on
+		      its behavior in the specified address range.  This is
+		      the system default behavior.  This is used with
+		      madvise() system call.
+
+     POSIX_MADV_NORMAL
+		      Same as MADV_NORMAL but used with posix_madvise() system
+		      call.
+
+     MADV_SEQUENTIAL  Indicates that the application expects to access this
+		      address range in a sequential manner.  This is used with
+		      madvise() system call.
+
+     POSIX_MADV_SEQUENTIAL
+		      Same as MADV_SEQUENTIAL but used with posix_madvise()
+		      system call.
+
+     MADV_RANDOM      Indicates that the application expects to access this
+		      address range in a random manner.  This is used with
+		      madvise() system call.
+
+     POSIX_MADV_RANDOM
+		      Same as MADV_RANDOM but used with posix_madvise() system
+		      call.
+
+     MADV_WILLNEED    Indicates that the application expects to access this
+		      address range soon.  This is used with madvise() system
+		      call.
+
+     POSIX_MADV_WILLNEED
+		      Same as MADV_WILLNEED but used with posix_madvise() sys-
+		      tem call.
+
+     MADV_DONTNEED    Indicates that the application is not expecting to
+		      access this address range soon.  This is used with
+		      madvise() system call.
+
+     POSIX_MADV_DONTNEED
+		      Same as MADV_DONTNEED but used with posix_madvise() sys-
+		      tem call.
+
+     MADV_FREE	      Indicates that the application will not need the infor-
+		      mation contained in this address range, so the pages may
+		      be reused right away.  The address range will remain
+		      valid.  This is used with madvise() system call.
+
+     MADV_ZERO_WIRED_PAGES
+		      Indicates that the application would like the wired
+		      pages in this address range to be zeroed out if the
+		      address range is dellocated without first unwiring the
+		      pages (i.e. a munmap(2) without a preceding munlock(2)
+		      or the application quits).  This is used with madvise()
+		      system call.
+
+     The posix_madvise() behaves same as madvise() except that it uses values
+     with POSIX_ prefix for the advice system call argument.
+
+RETURN VALUES
+     Upon successful completion, a value of 0 is returned.  Otherwise, a value
+     of -1 is returned and errno is set to indicate the error.
+
+ERRORS
+     madvise() fails if one or more of the following are true:
+
+     [EINVAL]		The value of advice is incorrect.
+
+     [EINVAL]		The address range includes unallocated regions.
+
+     [ENOMEM]		The virtual address range specified by the addr and
+			len are outside the range allowed for the address
+			space.
+
+LEGACY SYNOPSIS
+     #include <sys/types.h>
+     #include <sys/mman.h>
+
+     int
+     madvise(caddr_t addr, size_t len, int advice);
+
+     int
+     posix_madvise(caddr_t addr, size_t len, int advice);
+
+     The include file <sys/types.h> is necessary.  The type of addr has
+     changed.
+
+SEE ALSO
+     mincore(2), minherit(2), mprotect(2), msync(2), munmap(2), compat(5)
+
+HISTORY
+     The madvise function first appeared in 4.4BSD.  The posix_madvise func-
+     tion is part of IEEE 1003.1-2001 and was first implemented in Mac OS X
+     10.2.
+
+BSD				 June 9, 1993				   BSD
