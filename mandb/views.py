@@ -4,12 +4,13 @@ from django.template import TemplateDoesNotExist
 from django.views.generic.simple import direct_to_template
 import logging
 
-logger = logging.getLogger(__name__)
+#logger = logging.getLogger(django.request)
 
 
 def by_name(request ):
+    name = request.POST['name']
     try:
-        return direct_to_template(request, template="/app/static/mantext/%s.txt"%request.POST['name'])
+        return direct_to_template(request, template= u'static/mantext/%s.txt'%name)
     except TemplateDoesNotExist:
-        raise Http404()
+        raise Http404("post: %s"%str(request.POST))
 
