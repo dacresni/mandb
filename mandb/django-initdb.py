@@ -3,7 +3,7 @@ import re
 from os import listdir
 from google.appengine.ext import db
 from Models import Manual, Function
-# the following strings are to regular expressions to find 
+ the following strings are to regular expressions to find 
 
 
 def scan(file):
@@ -26,7 +26,7 @@ def scan(file):
         funct = Function(name=f,manual=man).put()
     for h in header_list :
         head = Header.gql("WHERE name = :n" n=h)
-        if head:
+        i head:
             head.append(mankey)
             head.put()
         else:
