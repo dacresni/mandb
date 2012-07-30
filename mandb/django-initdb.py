@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 # a file to parse the code of the man pages 
 import re
 from os import listdir
