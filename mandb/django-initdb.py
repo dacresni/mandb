@@ -2,6 +2,7 @@
 # a file to parse the code of the man pages 
 import re
 from os import listdir
+from django.conf import settings
 from django.db import models 
 from models import Manual, Function
 # the following strings are to regular expressions to find 
