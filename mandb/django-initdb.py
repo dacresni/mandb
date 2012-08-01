@@ -12,17 +12,17 @@ def scan(file):
     funct_list = []
     #header_list = []
     for line in file:
-        if line.beginswith(".Dd")
+        if line.beginswith(".Dd"):
            man.date=line
-        if line.beginswith(".Dt") #note this is the manual's name, see brk sbrk
+        if line.beginswith(".Dt"): #note this is the manual's name, see brk sbrk
            man.name=line
-        if line.beginswith(".Nd")
+        if line.beginswith(".Nd"):
            man.whatis=line
-        if line.beginswith(".Fo")
+        if line.beginswith(".Fo"):
            funct_list.append(line)
-        if line.beginswith(".Fd")
+        if line.beginswith(".Fd"):
            #header_list.append(line.split()[2])
-           man.header = line.split().[2]
+           man.header = line.split()[2]
     mankey = man.save()
     for f in funct_list:
         funct = Function(name=f,manual=man).save()
@@ -38,7 +38,7 @@ def scan(file):
 #            head.save()
 
 def get_pages():
-    for page in listdir("./static/manzip")
+    for page in listdir("./static/manzip"):
         manname = page.split(".")[0]
         man = open(manname, 'r')
         scan(man)
