@@ -12,7 +12,16 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASES = {'default': dj_database_url.config(default='postgres://localhost')}
+DATABASES = {
+#        'deploy': dj_database_url.config(default='postgres://localhost'),
+        'default':{
+            'NAME': 'mantest',
+            'ENGINE':'django.db.backends.postgresql_psycopg2',
+            'PASSWORD': '',
+            'HOST':'',
+            'PORT':''
+            }
+        }
 PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 
 # Local time zone for this installation. Choices can be found here:
