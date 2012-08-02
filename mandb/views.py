@@ -10,3 +10,8 @@ import logging
 def by_name(request ):
     name = request.POST['name']
     return redirect("/static/mantext/%s.txt"%name)
+
+def by_header(request):
+    title= request.POST['title']
+    man_list= Manuals.objects.get(header = title)
+
