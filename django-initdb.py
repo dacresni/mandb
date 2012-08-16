@@ -13,7 +13,7 @@ from mandb import models
 def scan(file):
     man = models.Manual()
     funct_list = []
-    #header_list = []
+    newheader = models.Header()
     for line in file:
         if line.startswith(".Dd"):
             timeString = " ".join(line.strip(",\n").split()[1:])
@@ -25,9 +25,11 @@ def scan(file):
         if line.startswith(".Fo"):
            funct_list.append(line)
         if line.startswith(".Fd"):
-           #header_list.append(line.split()[2])
-           man.header = models.Header(name=line.split()[2])
-    mankey = man.save()
+           #man.header =line.split()[2]
+           newheader = models.Header(name = line.split()[2])
+    #man.header = newheader.name
+    man.save()
+    newheader.save()
     for f in funct_list:
         funct = models.Function(name=f,manual=man).save()
 #    for h in header_list :

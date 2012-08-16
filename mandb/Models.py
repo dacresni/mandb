@@ -10,7 +10,7 @@ class Manual(models.Model):
     date = models.DateField()
     section = models.SmallIntegerField( default=2)
     whatis = models.TextField()
-    header = models.ForeignKey('Header')
     
 class Header(models.Model):
     name = models.TextField(primary_key=True)
+    manual= models.ForeignKey('Manual')
